@@ -1,0 +1,46 @@
+services:
+  # API (ASP.NET Core)
+  api:
+    build:
+      context: ./api/CobbleAPI
+      dockerfile: CobbleAPI/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Host=db;Port=5432;Database=cobbledb;Username=cobbleuser;Password=cobblepass123
+      - Jwt__Issuer=CobbleAPI
+      - Jwt__Audience=CobbleFrontend
+      - Jwt__ExpiryInMinutes=60
+    networks:
+      - cobble-network
+
+  # Database (PostgreSQL)
+  db:
+    image: postgres:18-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=cobbledb
+      - POSTGRES_USER=cobbleuser
+      - POSTGRES_PASSWORD=cobblepass123
+    volumes:
+      - cobble-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cobbleuser -d cobbledb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cobble-network
+
+volumes:
+  cobble-pgdata:
+
+networks:
+  cobble-network:
+    driver: bridge

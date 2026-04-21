@@ -1,0 +1,6 @@
+@CobbleAPI_HostAddress = http://localhost:5133
+
+GET {{CobbleAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
