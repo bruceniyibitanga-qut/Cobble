@@ -1,4 +1,4 @@
-﻿using CobbleAPI.Data;
+using CobbleAPI.Data;
 using CobbleAPI.Interfaces;
 using CobbleAPI.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -7,9 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CobbleAPI.Controllers;
 
+[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AuthController : Controller
+public class AuthController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly IAuthService _auth;
@@ -18,108 +19,63 @@ public class AuthController : Controller
     {
         _context = context;
         _auth = auth;
-
-    }
-
-    /// <summary>
-    /// Creates a new tenant (organisation). Only accessible by admins.
-    /// </summary>
-    /// <param name="orgRequest"></param>
-    /// <returns></returns>
-
-    [HttpPost("register/organisation")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<TenantResponse>> RegisterOrganisation(RegisterOrganisationRequest orgRequest)
-    {
-        if(await _context.Tenant.AnyAsync(t => t.Name == orgRequest.TenantName)) return Conflict("Tenant name already exists");
-
-        var tenant = new Tenant
-        {
-            Id = Guid.NewGuid(),
-            Name = orgRequest.TenantName
-        };
-
-        _context.Tenant.Add(tenant);
-        await _context.SaveChangesAsync();
-
-        return Ok(new TenantResponse(
-            Id: tenant.Id,
-            Name: tenant.Name,
-            UserCount: tenant.Users.Count,
-            AdminCount: tenant.AdminCount(),
-            CreatedAt: tenant.CreatedAt
-        ));
-    }
-
-    [HttpPost("register/user")]
-    public async Task<ActionResult<AuthResponse>> RegisterUser(JoinTenantRequest request)
-    {
-        var tenant = await _context.Tenant.FindAsync(request.TenantId);
-        if (tenant == null)
-            return NotFound(new { message = "Organisation not found." });
-
-        var result = await CreateUser(
-            request.Email, request.Password, request.FullName, tenant, "Member");
-
-        if (result.Result is not OkObjectResult)
-            return result;
-
-        await _context.SaveChangesAsync();
-        return result;
     }
 
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
-        var user = await _context.User
-            .Include(u => u.Tenant)
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email == request.Email && u.DeletedAt == null);
 
-        if (user == null || !_auth.VerifyPassword(request.Password, user.PasswordHash)) 
+        if (user == null || !user.IsActive || !_auth.VerifyPassword(request.Password, user.PasswordHash))
             return Unauthorized(new { message = "Invalid email or password." });
 
-        var token = _auth.GenerateJwtToken(user);
+        user.LastLoginAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
 
-        return Ok(new AuthResponse(
-            Token: token,
-            Email: user.Email,
-            FullName: user.FullName,
-            Role: user.Role,
-            TenantId: user.TenantId,
-            TenantName: user.Tenant.Name
-        ));
+        return Ok(BuildAuthResponse(user));
     }
 
-    [AllowAnonymous]
-    private async Task<ActionResult<AuthResponse>> CreateUser(
-    string email, string password, string fullName, Tenant tenant, string role)
+    /// <summary>Creates a new staff or admin account. Admin only.</summary>
+    [HttpPost("register")]
+    [Authorize(Roles = "admin")]
+    public async Task<ActionResult<AuthResponse>> Register(RegisterUserRequest request)
     {
-        if (await _context.User.AnyAsync(u => u.Email == email))
+        if (await _context.Users.AnyAsync(u => u.Email == request.Email && u.DeletedAt == null))
             return Conflict(new { message = "Email already registered." });
+
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == request.Role);
+        if (role == null)
+            return BadRequest(new { message = $"Invalid role '{request.Role}'. Valid values: admin, course_organiser, industry_partner." });
 
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Email = email,
-            PasswordHash = _auth.HashPassword(password),
-            FullName = fullName,
-            Role = role,
-            TenantId = tenant.Id
+            Email = request.Email,
+            PasswordHash = _auth.HashPassword(request.Password),
+            FullName = request.FullName,
+            RoleId = role.Id,
+            FacultyId = request.FacultyId,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
         };
 
-        _context.User.Add(user);
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
 
-        var token = _auth.GenerateJwtToken(user);
-
-        return Ok(new AuthResponse(
-            Token: token,
-            Email: user.Email,
-            FullName: user.FullName,
-            Role: user.Role,
-            TenantId: tenant.Id,
-            TenantName: tenant.Name
-        ));
+        user.Role = role;
+        return Ok(BuildAuthResponse(user));
     }
 
+    private AuthResponse BuildAuthResponse(User user) => new(
+        Token: _auth.GenerateJwtToken(user),
+        Email: user.Email,
+        FullName: user.FullName,
+        Role: user.Role.Name,
+        FacultyId: user.FacultyId,
+        OrganisationId: user.OrganisationId
+    );
 }
