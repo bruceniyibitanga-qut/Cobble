@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — QUT Industry Relations Database</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f3f4f6;
+      min-height: 100vh;
+      color: #111827;
+    }
+
+    /* Header */
+    header {
+      background: #002C5F;
+      color: white;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .header-logo { width: 36px; height: 36px; }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    .header-subtitle {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 1px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+    }
+
+    .user-block { text-align: right; line-height: 1.3; }
+    .user-name { font-weight: 600; }
+    .user-meta { font-size: 12px; opacity: 0.75; }
+
+    .role-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-left: 6px;
+    }
+
+    .role-admin   { background: #dc2626; color: white; }
+    .role-staff   { background: #16a34a; color: white; }
+    .role-faculty { background: #f59e0b; color: white; }
+
+    .logout-btn {
+      background: rgba(255,255,255,0.12);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .logout-btn:hover { background: rgba(255,255,255,0.22); }
+
+    /* Layout */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 28px; }
+
+    .welcome {
+      background: white;
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .welcome h2 {
+      font-size: 22px;
+      color: #002C5F;
+      margin-bottom: 4px;
+    }
+
+    .welcome p { color: #6b7280; font-size: 14px; }
+
+    /* Tab cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .tab-card {
+      background: white;
+      border-radius: 10px;
+      padding: 22px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border: 1px solid #e5e7eb;
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .tab-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
+
+    .tab-card.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .tab-icon {
+      width: 38px;
+      height: 38px;
+      background: #e6ebf2;
+      color: #002C5F;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .tab-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .tab-desc {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .tab-permission {
+      margin-top: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #6b7280;
+    }
+
+    .perm-rw { color: #16a34a; }
+    .perm-r  { color: #2563eb; }
+    .perm-no { color: #dc2626; }
+
+    /* Section header */
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 12px;
+      padding-left: 4px;
+    }
+
+    /* Admin-only callout */
+    .admin-only {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #fcd34d;
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 32px;
+    }
+
+    .admin-only h3 {
+      font-size: 15px;
+      color: #92400e;
+      margin-bottom: 4px;
+    }
+
+    .admin-only p {
+      font-size: 13px;
+      color: #78350f;
+    }
+
+    .info-row {
+      background: white;
+      border-radius: 10px;
+      padding: 18px 22px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #4b5563;
+    }
+
+    .info-row strong { color: #111827; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <img src="qut-logo.svg" alt="QUT logo" class="header-logo" style="filter: brightness(0) invert(1);" />
+      <div>
+        <div class="header-title">Industry Relations Database</div>
+        <div class="header-subtitle" id="header-tenant"></div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-block">
+        <div class="user-name" id="header-name"></div>
+        <div class="user-meta">
+          <span id="header-email"></span>
+          <span class="role-badge" id="header-role"></span>
+        </div>
+      </div>
+      <button class="logout-btn" id="logout-btn">Sign out</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="welcome">
+      <h2>Welcome back, <span id="welcome-name"></span></h2>
+      <p id="welcome-message"></p>
+    </div>
+
+    <div id="admin-callout" class="admin-only" style="display:none;">
+      <h3>Administrator tools</h3>
+      <p>You have full access. From here you can create new organisations, manage users, and configure system-wide settings.</p>
+    </div>
+
+    <div class="section-title">Application tabs</div>
+
+    <div class="grid">
+      <a class="tab-card" id="tab-partners" href="#">
+        <div class="tab-icon">🏢</div>
+        <div class="tab-title">Industry Partners</div>
+        <div class="tab-desc">View and manage QUT's industry partner organisations.</div>
+        <div class="tab-permission" id="perm-partners"></div>
+      </a>
+
+      <a class="tab-card" id="tab-projects" href="#">
+        <div class="tab-icon">📋</div>
+        <div class="tab-title">Projects</div>
+        <div class="tab-desc">Browse capstone, undergrad, and postgrad project history.</div>
+        <div class="tab-permission" id="perm-projects"></div>
+      </a>
+
+      <a class="tab-card" id="tab-events" href="#">
+        <div class="tab-icon">🎤</div>
+        <div class="tab-title">Events</div>
+        <div class="tab-desc">Track showcases, expos, and industry meetings.</div>
+        <div class="tab-permission" id="perm-events"></div>
+      </a>
+
+      <a class="tab-card" id="tab-analytics" href="#">
+        <div class="tab-icon">📊</div>
+        <div class="tab-title">Analytics</div>
+        <div class="tab-desc">Reports on partner activity, intake trends, and engagement.</div>
+        <div class="tab-permission" id="perm-analytics"></div>
+      </a>
+
+      <a class="tab-card" id="tab-users" href="#">
+        <div class="tab-icon">👥</div>
+        <div class="tab-title">User Management</div>
+        <div class="tab-desc">Add staff accounts, assign roles, manage permissions.</div>
+        <div class="tab-permission" id="perm-users"></div>
+      </a>
+    </div>
+
+    <div class="info-row">
+      <strong>Authenticated session.</strong>
+      You are signed in with a JWT issued by the CobbleAPI backend. Every request your tabs make to the API will include this token automatically.
+    </div>
+  </div>
+
+  <script>
+    // Permission matrix (mirrors the access control notes)
+    const PERMISSIONS = {
+      Admin:   { partners: "rw", projects: "rw", events: "rw", analytics: "r",  users: "rw" },
+      Staff:   { partners: "rw", projects: "rw", events: "rw", analytics: "r",  users: "no" },
+      Faculty: { partners: "r",  projects: "r",  events: "r",  analytics: "r",  users: "no" },
+    };
+
+    const PERM_LABEL = {
+      rw: { text: "Read / Write", cls: "perm-rw" },
+      r:  { text: "Read only",    cls: "perm-r"  },
+      no: { text: "No access",    cls: "perm-no" },
+    };
+
+    // Route guard — kick anyone unauthenticated back to login
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      window.location.href = "login.html";
+    }
+
+    const role       = localStorage.getItem("userRole")   || "Faculty";
+    const fullName   = localStorage.getItem("userName")   || "User";
+    const email      = localStorage.getItem("userEmail")  || "";
+    const tenantName = localStorage.getItem("tenantName") || "";
+
+    // Header
+    document.getElementById("header-name").textContent  = fullName;
+    document.getElementById("header-email").textContent = email;
+    document.getElementById("header-tenant").textContent = tenantName;
+
+    const roleBadge = document.getElementById("header-role");
+    roleBadge.textContent = role;
+    roleBadge.classList.add("role-" + role.toLowerCase());
+
+    // Welcome
+    document.getElementById("welcome-name").textContent = fullName.split(" ")[0];
+    const welcomeMsgs = {
+      Admin: "You have full access to all features, including user and organisation management.",
+      Staff: "You can read and edit Industry Partners, Projects, and Events. User management is restricted to administrators.",
+      Faculty: "You have read-only access to the database. Contact a staff member if you need to make changes.",
+    };
+    document.getElementById("welcome-message").textContent = welcomeMsgs[role] || welcomeMsgs.Faculty;
+
+    // Admin callout
+    if (role === "Admin") {
+      document.getElementById("admin-callout").style.display = "block";
+    }
+
+    // Apply permissions to each tab card
+    const perms = PERMISSIONS[role] || PERMISSIONS.Faculty;
+    for (const [tab, level] of Object.entries(perms)) {
+      const card = document.getElementById("tab-" + tab);
+      const label = document.getElementById("perm-" + tab);
+      if (!card || !label) continue;
+
+      const lbl = PERM_LABEL[level];
+      label.textContent = lbl.text;
+      label.classList.add(lbl.cls);
+
+      if (level === "no") {
+        card.classList.add("disabled");
+      }
+    }
+
+    // Logout
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    });
+  </script>
+</body>
+</html>
