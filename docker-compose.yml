@@ -40,7 +40,8 @@ services:
       - Jwt__Issuer=CobbleAPI
       - Jwt__Audience=CobbleFrontend
       - Jwt__ExpiryInMinutes=60
-      - Jwt__Secret=${JWT_SECRET:-b7a87d34f3b19256c183bb07baa192fc2548c810b4e030f68629624f99ba5274}
+      # JWT keys are loaded from appsettings.json in dev.
+      # In production, override Jwt__PrivateKeyPem and Jwt__PublicKeyPem via environment or Docker secrets.
     networks:
       - cobble-network
 

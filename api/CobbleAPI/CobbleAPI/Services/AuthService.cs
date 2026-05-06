@@ -3,7 +3,7 @@ using CobbleAPI.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
+using System.Security.Cryptography;
 
 namespace CobbleAPI.Services;
 
@@ -18,8 +18,9 @@ public class AuthService : IAuthService
 
     public string GenerateJwtToken(User user)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]!));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var rsa = RSA.Create();
+        rsa.ImportFromPem(_configuration["Jwt:PrivateKeyPem"]!);
+        var credentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
 
         var claims = new List<Claim>
         {

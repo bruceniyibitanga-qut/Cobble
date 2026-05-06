@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using System.Text;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +18,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Asymmetric JWT validation — only the public key is needed here.
+// Tokens are signed with the private key (in AuthService) so even if the
+// public key is exposed, nobody can forge tokens without the private key.
+var validationRsa = RSA.Create();
+validationRsa.ImportFromPem(builder.Configuration["Jwt:PublicKeyPem"]!);
 
 builder.Services.AddAuthentication(x =>
 {
@@ -34,8 +40,7 @@ builder.Services.AddAuthentication(x =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!)),
+        IssuerSigningKey = new RsaSecurityKey(validationRsa),
         ClockSkew = TimeSpan.Zero
     };
 });
