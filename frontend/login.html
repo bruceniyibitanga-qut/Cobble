@@ -270,7 +270,8 @@
         localStorage.setItem("userEmail", data.email);
         localStorage.setItem("userName", data.fullName);
         localStorage.setItem("userRole", data.role);
-        localStorage.setItem("tenantName", data.tenantName);
+        localStorage.setItem("facultyId", data.facultyId || "");
+        localStorage.setItem("organisationId", data.organisationId || "");
 
         message.className = "message success";
         message.textContent = `Welcome, ${data.fullName}. Redirecting...`;

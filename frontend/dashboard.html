@@ -63,9 +63,9 @@
       margin-left: 6px;
     }
 
-    .role-admin   { background: #dc2626; color: white; }
-    .role-staff   { background: #16a34a; color: white; }
-    .role-faculty { background: #f59e0b; color: white; }
+    .role-admin             { background: #dc2626; color: white; }
+    .role-course_organiser  { background: #16a34a; color: white; }
+    .role-industry_partner  { background: #f59e0b; color: white; }
 
     .logout-btn {
       background: rgba(255,255,255,0.12);
@@ -294,11 +294,12 @@
   </div>
 
   <script>
-    // Permission matrix (mirrors the access control notes)
+    // Permission matrix (mirrors the access control notes).
+    // Role keys are lowercase to match what the API returns.
     const PERMISSIONS = {
-      Admin:   { partners: "rw", projects: "rw", events: "rw", analytics: "r",  users: "rw" },
-      Staff:   { partners: "rw", projects: "rw", events: "rw", analytics: "r",  users: "no" },
-      Faculty: { partners: "r",  projects: "r",  events: "r",  analytics: "r",  users: "no" },
+      admin:             { partners: "rw", projects: "rw", events: "rw", analytics: "r",  users: "rw" },
+      course_organiser:  { partners: "rw", projects: "rw", events: "rw", analytics: "r",  users: "no" },
+      industry_partner:  { partners: "r",  projects: "r",  events: "r",  analytics: "no", users: "no" },
     };
 
     const PERM_LABEL = {
@@ -313,36 +314,37 @@
       window.location.href = "login.html";
     }
 
-    const role       = localStorage.getItem("userRole")   || "Faculty";
-    const fullName   = localStorage.getItem("userName")   || "User";
-    const email      = localStorage.getItem("userEmail")  || "";
-    const tenantName = localStorage.getItem("tenantName") || "";
+    const role     = (localStorage.getItem("userRole")  || "industry_partner").toLowerCase();
+    const fullName = localStorage.getItem("userName")   || "User";
+    const email    = localStorage.getItem("userEmail")  || "";
 
     // Header
     document.getElementById("header-name").textContent  = fullName;
     document.getElementById("header-email").textContent = email;
-    document.getElementById("header-tenant").textContent = tenantName;
+    document.getElementById("header-tenant").textContent = "QUT Professional Services";
 
+    // Pretty-print role for the badge: course_organiser → Course Organiser
+    const prettyRole = role.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
     const roleBadge = document.getElementById("header-role");
-    roleBadge.textContent = role;
-    roleBadge.classList.add("role-" + role.toLowerCase());
+    roleBadge.textContent = prettyRole;
+    roleBadge.classList.add("role-" + role);
 
     // Welcome
     document.getElementById("welcome-name").textContent = fullName.split(" ")[0];
     const welcomeMsgs = {
-      Admin: "You have full access to all features, including user and organisation management.",
-      Staff: "You can read and edit Industry Partners, Projects, and Events. User management is restricted to administrators.",
-      Faculty: "You have read-only access to the database. Contact a staff member if you need to make changes.",
+      admin: "You have full access to all features, including user and organisation management.",
+      course_organiser: "You can read and edit Industry Partners, Projects, and Events. User management is restricted to administrators.",
+      industry_partner: "You have read-only access to projects and events relevant to your organisation.",
     };
-    document.getElementById("welcome-message").textContent = welcomeMsgs[role] || welcomeMsgs.Faculty;
+    document.getElementById("welcome-message").textContent = welcomeMsgs[role] || welcomeMsgs.industry_partner;
 
     // Admin callout
-    if (role === "Admin") {
+    if (role === "admin") {
       document.getElementById("admin-callout").style.display = "block";
     }
 
     // Apply permissions to each tab card
-    const perms = PERMISSIONS[role] || PERMISSIONS.Faculty;
+    const perms = PERMISSIONS[role] || PERMISSIONS.industry_partner;
     for (const [tab, level] of Object.entries(perms)) {
       const card = document.getElementById("tab-" + tab);
       const label = document.getElementById("perm-" + tab);
