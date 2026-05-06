@@ -1,24 +1,18 @@
-﻿namespace CobbleAPI.Models;
+namespace CobbleAPI.Models;
 
-// Auth DTOs 
-
-public record RegisterOrganisationRequest(
-    string TenantName,
-    string AdminEmail,
-    string AdminPassword,
-    string AdminFullName
-);
-
-public record JoinTenantRequest(
-    Guid TenantId,
-    string Email,
-    string Password,
-    string FullName
-);
+// Auth DTOs
 
 public record LoginRequest(
     string Email,
     string Password
+);
+
+public record RegisterUserRequest(
+    string Email,
+    string Password,
+    string FullName,
+    string Role,       // "admin" | "course_organiser" | "industry_partner"
+    int? FacultyId
 );
 
 public record AuthResponse(
@@ -26,16 +20,6 @@ public record AuthResponse(
     string Email,
     string FullName,
     string Role,
-    Guid TenantId,
-    string TenantName
-);
-
-// Tenant DTOs
-
-public record TenantResponse(
-    Guid Id,
-    string Name,
-    int UserCount,
-    int AdminCount,
-    DateTime CreatedAt
+    int? FacultyId,
+    Guid? OrganisationId
 );

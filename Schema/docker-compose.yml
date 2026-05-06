@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: qut-crm-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: qut_crm
+      POSTGRES_USER: qut_crm
+      POSTGRES_PASSWORD: changeme_local_only
+    ports:
+      - "5433:5432"  # 5433 to avoid conflict with the main docker-compose.yml
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Auto-runs on first DB init only. Delete the volume to re-run.
+      - ./schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qut_crm -d qut_crm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: qut-crm-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: changeme_local_only
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5051:80"  # 5051 to avoid conflict with the main docker-compose.yml
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  pgadmin_data:
