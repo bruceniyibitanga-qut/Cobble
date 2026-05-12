@@ -251,14 +251,14 @@
     <div class="section-title">Application tabs</div>
 
     <div class="grid">
-      <a class="tab-card" id="tab-partners" href="#">
+      <a class="tab-card" id="tab-partners" href="platform-view.html#partners">
         <div class="tab-icon">🏢</div>
         <div class="tab-title">Industry Partners</div>
         <div class="tab-desc">View and manage QUT's industry partner organisations.</div>
         <div class="tab-permission" id="perm-partners"></div>
       </a>
 
-      <a class="tab-card" id="tab-projects" href="#">
+      <a class="tab-card" id="tab-projects" href="platform-view.html#projects">
         <div class="tab-icon">📋</div>
         <div class="tab-title">Projects</div>
         <div class="tab-desc">Browse capstone, undergrad, and postgrad project history.</div>
@@ -270,6 +270,13 @@
         <div class="tab-title">Events</div>
         <div class="tab-desc">Track showcases, expos, and industry meetings.</div>
         <div class="tab-permission" id="perm-events"></div>
+      </a>
+
+      <a class="tab-card" id="tab-applications" href="platform-view.html#applications">
+        <div class="tab-icon">📝</div>
+        <div class="tab-title">Project Applications</div>
+        <div class="tab-desc">Review partner-facing project proposals and submission status.</div>
+        <div class="tab-permission" id="perm-applications"></div>
       </a>
 
       <a class="tab-card" id="tab-analytics" href="#">
@@ -297,9 +304,9 @@
     // Permission matrix (mirrors the access control notes).
     // Role keys are lowercase to match what the API returns.
     const PERMISSIONS = {
-      admin:             { partners: "rw", projects: "rw", events: "rw", analytics: "r",  users: "rw" },
-      course_organiser:  { partners: "rw", projects: "rw", events: "rw", analytics: "r",  users: "no" },
-      industry_partner:  { partners: "r",  projects: "r",  events: "r",  analytics: "no", users: "no" },
+      admin:             { partners: "rw", projects: "rw", events: "rw", applications: "rw", analytics: "r",  users: "rw" },
+      course_organiser:  { partners: "rw", projects: "rw", events: "rw", applications: "r",  analytics: "r",  users: "no" },
+      industry_partner:  { partners: "r",  projects: "r",  events: "r",  applications: "rw", analytics: "no", users: "no" },
     };
 
     const PERM_LABEL = {

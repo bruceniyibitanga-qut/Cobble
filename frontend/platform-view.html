@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Platform View - QUT Industry Relations Database</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f3f4f6;
+      min-height: 100vh;
+      color: #111827;
+    }
+
+    header {
+      background: #002C5F;
+      color: white;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .header-logo { width: 36px; height: 36px; filter: brightness(0) invert(1); }
+    .header-title { font-size: 16px; font-weight: 600; }
+    .header-subtitle { font-size: 12px; opacity: 0.75; margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+
+    .nav-link,
+    .logout-btn {
+      background: rgba(255,255,255,0.12);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .nav-link:hover,
+    .logout-btn:hover { background: rgba(255,255,255,0.22); }
+
+    .container { max-width: 1180px; margin: 0 auto; padding: 28px; }
+
+    .page-title {
+      margin-bottom: 22px;
+    }
+
+    .page-title h1 {
+      font-size: 24px;
+      color: #002C5F;
+      margin-bottom: 5px;
+    }
+
+    .page-title p {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .summary {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .summary-label {
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-value {
+      color: #111827;
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .section {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 22px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .section-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .section-header h2 {
+      font-size: 17px;
+      color: #111827;
+    }
+
+    .section-header span {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th,
+    td {
+      padding: 11px 14px;
+      text-align: left;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #475569;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 700;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .status {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-approved,
+    .status-active,
+    .status-ongoing { background: #dcfce7; color: #166534; }
+
+    .status-pending,
+    .status-proposed,
+    .status-prospect { background: #fef3c7; color: #92400e; }
+
+    .status-rejected,
+    .status-cancelled,
+    .status-inactive { background: #fee2e2; color: #991b1b; }
+
+    .status-completed { background: #dbeafe; color: #1e40af; }
+
+    .empty,
+    .error {
+      padding: 18px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .error {
+      color: #991b1b;
+      background: #fef2f2;
+      border-top: 1px solid #fecaca;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <img src="qut-logo.svg" alt="QUT logo" class="header-logo" />
+      <div>
+        <div class="header-title">Industry Relations Database</div>
+        <div class="header-subtitle">Platform view</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <button class="logout-btn" id="logout-btn">Sign out</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-title">
+      <h1>Partner and Projects View</h1>
+      <p id="view-context">Loading organiser-facing and partner-facing data...</p>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary">
+        <div class="summary-label">Partners</div>
+        <div class="summary-value" id="partners-count">-</div>
+      </div>
+      <div class="summary">
+        <div class="summary-label">Projects</div>
+        <div class="summary-value" id="projects-count">-</div>
+      </div>
+      <div class="summary">
+        <div class="summary-label">Applications</div>
+        <div class="summary-value" id="applications-count">-</div>
+      </div>
+    </div>
+
+    <section class="section" id="partners">
+      <div class="section-header">
+        <h2>Industry Partners</h2>
+        <span>Organisations visible to your role</span>
+      </div>
+      <div class="table-wrap" id="partners-table"></div>
+    </section>
+
+    <section class="section" id="projects">
+      <div class="section-header">
+        <h2>Projects</h2>
+        <span>Approved and active project records</span>
+      </div>
+      <div class="table-wrap" id="projects-table"></div>
+    </section>
+
+    <section class="section" id="applications">
+      <div class="section-header">
+        <h2>Project Applications</h2>
+        <span>Partner-facing project submissions</span>
+      </div>
+      <div class="table-wrap" id="applications-table"></div>
+    </section>
+  </main>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+    const token = localStorage.getItem("authToken");
+    const role = (localStorage.getItem("userRole") || "").toLowerCase();
+    const fullName = localStorage.getItem("userName") || "User";
+
+    if (!token) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("view-context").textContent =
+      `${fullName} (${prettyRole(role) || "signed in"}) can see records scoped by the API.`;
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    });
+
+    function prettyRole(value) {
+      return value.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function status(value) {
+      if (!value) return "";
+      const cls = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      return `<span class="status status-${cls}">${escapeHtml(value)}</span>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      return new Intl.DateTimeFormat("en-AU", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }).format(new Date(value));
+    }
+
+    async function getJson(path) {
+      const response = await fetch(`${API_BASE}${path}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.status === 401) {
+        localStorage.clear();
+        window.location.href = "login.html";
+        return [];
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return response.json();
+    }
+
+    function renderTable(targetId, columns, rows) {
+      const target = document.getElementById(targetId);
+
+      if (!rows.length) {
+        target.innerHTML = `<div class="empty">No records to display.</div>`;
+        return;
+      }
+
+      const headings = columns.map(col => `<th>${escapeHtml(col.label)}</th>`).join("");
+      const body = rows.map(row => {
+        const cells = columns.map(col => `<td>${col.render(row)}</td>`).join("");
+        return `<tr>${cells}</tr>`;
+      }).join("");
+
+      target.innerHTML = `<table><thead><tr>${headings}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    function renderError(targetId, error) {
+      document.getElementById(targetId).innerHTML =
+        `<div class="error">Could not load this section (${escapeHtml(error.message)}).</div>`;
+    }
+
+    async function loadPartners() {
+      try {
+        const rows = await getJson("/api/organisations");
+        document.getElementById("partners-count").textContent = rows.length;
+        renderTable("partners-table", [
+          { label: "Name", render: row => escapeHtml(row.name) },
+          { label: "Industry", render: row => escapeHtml(row.industry || "Unspecified") },
+          { label: "Partnership", render: row => status(row.partnershipStatus) },
+          { label: "Submission", render: row => status(row.submissionStatus) },
+          { label: "Primary contact", render: row => escapeHtml(row.primaryContactName || "") },
+          { label: "Email", render: row => escapeHtml(row.primaryContactEmail || "") },
+          { label: "Projects", render: row => escapeHtml(row.projectCount) },
+        ], rows);
+      } catch (error) {
+        document.getElementById("partners-count").textContent = "!";
+        renderError("partners-table", error);
+      }
+    }
+
+    async function loadProjects() {
+      try {
+        const rows = await getJson("/api/projects");
+        document.getElementById("projects-count").textContent = rows.length;
+        renderTable("projects-table", [
+          { label: "Title", render: row => escapeHtml(row.title) },
+          { label: "Partner", render: row => escapeHtml(row.organisationName) },
+          { label: "Faculty", render: row => escapeHtml(row.faculty || "Unspecified") },
+          { label: "Type", render: row => escapeHtml(row.projectType) },
+          { label: "Intake", render: row => escapeHtml(`${row.semester} ${row.year}`) },
+          { label: "Status", render: row => status(row.status) },
+          { label: "Updated", render: row => escapeHtml(formatDate(row.updatedAt)) },
+        ], rows);
+      } catch (error) {
+        document.getElementById("projects-count").textContent = "!";
+        renderError("projects-table", error);
+      }
+    }
+
+    async function loadApplications() {
+      try {
+        const rows = await getJson("/api/projectapplications");
+        document.getElementById("applications-count").textContent = rows.length;
+        renderTable("applications-table", [
+          { label: "Proposed title", render: row => escapeHtml(row.proposedTitle) },
+          { label: "Partner", render: row => escapeHtml(row.organisationName) },
+          { label: "Contact", render: row => escapeHtml(row.contactName || "") },
+          { label: "Type", render: row => escapeHtml(row.proposedProjectType || "") },
+          { label: "Intake", render: row => escapeHtml([row.proposedSemester, row.proposedYear].filter(Boolean).join(" ")) },
+          { label: "Faculty", render: row => escapeHtml(row.proposedFaculty || "") },
+          { label: "Status", render: row => status(row.applicationStatus) },
+          { label: "Submitted", render: row => escapeHtml(formatDate(row.submittedAt)) },
+        ], rows);
+      } catch (error) {
+        document.getElementById("applications-count").textContent = "!";
+        renderError("applications-table", error);
+      }
+    }
+
+    void Promise.all([loadPartners(), loadProjects(), loadApplications()]);
+  </script>
+</body>
+</html>
