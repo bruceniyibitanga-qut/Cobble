@@ -24,7 +24,7 @@ jobs:
         working-directory: api/CobbleAPI
 
       - name: Build
-        run: dotnet build --no-restore --warnaserrors
+        run: dotnet build --no-restore -warnAsError
         working-directory: api/CobbleAPI
 
       - name: Check formatting
