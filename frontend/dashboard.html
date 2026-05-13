@@ -247,7 +247,9 @@
         <a class="active" href="dashboard.html">Dashboard</a>
         <a href="platform-view.html#partners">Organisations</a>
         <a href="platform-view.html#projects">Projects</a>
+        <a href="platform-view.html#events">Events</a>
         <a href="platform-view.html#applications">Applications</a>
+        <a href="platform-view.html#users" data-admin-nav>User Management</a>
       </nav>
       <div class="user-block">
         <div class="user-name" id="header-name"></div>
@@ -288,7 +290,7 @@
         <div class="tab-permission" id="perm-projects"></div>
       </a>
 
-      <a class="tab-card" id="tab-events" href="#">
+      <a class="tab-card" id="tab-events" href="platform-view.html#events">
         <div class="tab-icon">🎤</div>
         <div class="tab-title">Events</div>
         <div class="tab-desc">Track showcases, expos, and industry meetings.</div>
@@ -309,7 +311,7 @@
         <div class="tab-permission" id="perm-analytics"></div>
       </a>
 
-      <a class="tab-card" id="tab-users" href="#">
+      <a class="tab-card" id="tab-users" href="platform-view.html#users">
         <div class="tab-icon">👥</div>
         <div class="tab-title">User Management</div>
         <div class="tab-desc">Add staff accounts, assign roles, manage permissions.</div>
@@ -386,8 +388,13 @@
 
       if (level === "no") {
         card.classList.add("disabled");
+        card.removeAttribute("href");
       }
     }
+
+    document.querySelectorAll("[data-admin-nav]").forEach(link => {
+      link.hidden = role !== "admin";
+    });
 
     // Logout
     document.getElementById("logout-btn").addEventListener("click", () => {

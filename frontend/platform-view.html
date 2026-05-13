@@ -347,7 +347,9 @@
         <a href="dashboard.html">Dashboard</a>
         <a href="platform-view.html#partners" data-nav-view="partners">Organisations</a>
         <a href="platform-view.html#projects" data-nav-view="projects">Projects</a>
+        <a href="platform-view.html#events" data-nav-view="events">Events</a>
         <a href="platform-view.html#applications" data-nav-view="applications">Applications</a>
+        <a href="platform-view.html#users" data-nav-view="users" data-admin-nav>User Management</a>
       </nav>
       <button class="logout-btn" id="logout-btn">Sign out</button>
     </div>
@@ -371,6 +373,14 @@
       <div class="summary" data-summary="applications">
         <div class="summary-label">Applications</div>
         <div class="summary-value" id="applications-count">-</div>
+      </div>
+      <div class="summary" data-summary="events">
+        <div class="summary-label">Events</div>
+        <div class="summary-value" id="events-count">-</div>
+      </div>
+      <div class="summary" data-summary="users" data-admin-only>
+        <div class="summary-label">Users</div>
+        <div class="summary-value" id="users-count">-</div>
       </div>
     </div>
 
@@ -449,6 +459,49 @@
       </div>
       <div class="table-wrap" id="applications-table"></div>
     </section>
+
+    <section class="section" id="events" data-view="events">
+      <div class="section-header">
+        <h2>Events</h2>
+        <span>Showcases, expos, meetings, and partner engagement activity</span>
+      </div>
+      <div class="section-tools">
+        <input id="events-search" type="search" placeholder="Search events..." />
+        <select id="events-type">
+          <option value="">All event types</option>
+          <option value="showcase">Showcase</option>
+          <option value="expo">Expo</option>
+          <option value="meeting">Meeting</option>
+          <option value="scholar_program">Scholar program</option>
+        </select>
+        <input id="events-year" type="number" min="2019" max="2100" placeholder="Year" />
+        <button class="primary-btn" data-action="new-event" data-create-type="event">Add Event</button>
+      </div>
+      <div class="table-wrap" id="events-table"></div>
+    </section>
+
+    <section class="section" id="users" data-view="users" data-admin-only>
+      <div class="section-header">
+        <h2>User Management</h2>
+        <span>Admin-only account and role management</span>
+      </div>
+      <div class="section-tools">
+        <input id="users-search" type="search" placeholder="Search users..." />
+        <select id="users-role">
+          <option value="">All roles</option>
+          <option value="admin">Admin</option>
+          <option value="course_organiser">Course organiser</option>
+          <option value="industry_partner">Industry partner</option>
+        </select>
+        <select id="users-active">
+          <option value="">All account states</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+        <button class="primary-btn" data-action="new-user" data-create-type="user">Add User</button>
+      </div>
+      <div class="table-wrap" id="users-table"></div>
+    </section>
   </main>
 
   <div class="modal-overlay" id="record-modal">
@@ -474,6 +527,8 @@
       partners: [],
       projects: [],
       applications: [],
+      events: [],
+      users: [],
       modalType: "",
       modalId: null,
     };
@@ -497,6 +552,14 @@
       applications: {
         title: "Project Applications",
         context: "Pending partner-submitted applications waiting for review or approval.",
+      },
+      events: {
+        title: "Events",
+        context: "Showcases, expos, meetings, and other industry engagement records.",
+      },
+      users: {
+        title: "User Management",
+        context: "Admin-only account, role, and access management.",
       },
     };
 
@@ -530,15 +593,37 @@
         ["proposedYear", "Year", "number", false],
         ["proposedFacultyId", "Faculty ID", "number", false],
       ],
+      event: [
+        ["name", "Name", "text", true],
+        ["description", "Description", "textarea", false],
+        ["eventType", "Event type", "select", false, ["showcase", "expo", "meeting", "scholar_program"]],
+        ["eventDate", "Date", "date", true],
+        ["location", "Location", "text", false],
+        ["facultyId", "Faculty ID", "number", false],
+        ["notes", "Notes", "textarea", false],
+      ],
+      user: [
+        ["email", "Email", "email", true],
+        ["password", "Password", "password", false],
+        ["fullName", "Full name", "text", true],
+        ["role", "Role", "select", true, ["admin", "course_organiser", "industry_partner"]],
+        ["facultyId", "Faculty ID", "number", false],
+        ["organisationId", "Organisation", "select-org-empty", false],
+        ["isActive", "Active", "select", true, ["true", "false"]],
+      ],
     };
 
     function selectedView() {
       const view = window.location.hash.replace("#", "");
+      if (view === "users" && role !== "admin") return "all";
       return VIEW_COPY[view] ? view : "all";
     }
 
     function applyViewMode() {
       const view = selectedView();
+      document.querySelectorAll("[data-admin-nav], [data-admin-only]").forEach(element => {
+        element.hidden = role !== "admin";
+      });
       const copy = VIEW_COPY[view];
       document.getElementById("page-heading").textContent = copy ? copy.title : "Partner and Projects View";
       document.getElementById("view-context").textContent = copy
@@ -578,6 +663,8 @@
     function canCreate(type) {
       if (type === "partner" || type === "project") return role === "admin" || role === "course_organiser";
       if (type === "application") return ["admin", "course_organiser", "industry_partner"].includes(role);
+      if (type === "event") return role === "admin" || role === "course_organiser";
+      if (type === "user") return role === "admin";
       return false;
     }
 
@@ -588,6 +675,7 @@
     function canDelete(type) {
       if (type === "partner" || type === "project") return role === "admin";
       if (type === "application") return role === "admin" || role === "course_organiser";
+      if (type === "event" || type === "user") return role === "admin";
       return false;
     }
 
@@ -690,6 +778,44 @@
       ], rows);
     }
 
+    function renderEvents() {
+      const rows = filterRows(state.events, {
+        name: document.getElementById("events-search").value,
+        eventType: document.getElementById("events-type").value,
+        eventDate: document.getElementById("events-year").value,
+      });
+      document.getElementById("events-count").textContent = rows.length;
+      renderTable("events-table", [
+        { label: "Name", render: row => escapeHtml(row.name) },
+        { label: "Type", render: row => escapeHtml(row.eventType || "") },
+        { label: "Date", render: row => escapeHtml(formatDate(row.eventDate)) },
+        { label: "Location", render: row => escapeHtml(row.location || "") },
+        { label: "Faculty", render: row => escapeHtml(row.faculty || "All faculties") },
+        { label: "Attendees", render: row => escapeHtml(row.attendanceCount) },
+        { label: "Actions", render: row => actionButtons("event", row.id) },
+      ], rows);
+    }
+
+    function renderUsers() {
+      if (role !== "admin") return;
+      const rows = filterRows(state.users, {
+        fullName: document.getElementById("users-search").value,
+        role: document.getElementById("users-role").value,
+        isActive: document.getElementById("users-active").value,
+      });
+      document.getElementById("users-count").textContent = rows.length;
+      renderTable("users-table", [
+        { label: "Name", render: row => escapeHtml(row.fullName) },
+        { label: "Email", render: row => escapeHtml(row.email) },
+        { label: "Role", render: row => status(row.role) },
+        { label: "Faculty", render: row => escapeHtml(row.faculty || "") },
+        { label: "Organisation", render: row => escapeHtml(row.organisationName || "") },
+        { label: "Active", render: row => status(row.isActive ? "active" : "inactive") },
+        { label: "Last login", render: row => escapeHtml(formatDate(row.lastLoginAt)) },
+        { label: "Actions", render: row => actionButtons("user", row.id) },
+      ], rows);
+    }
+
     function actionButtons(type, id) {
       const buttons = [];
       if (canEdit(type)) buttons.push(`<button class="action-btn edit-btn" data-action="edit-${type}" data-id="${id}">Edit</button>`);
@@ -701,21 +827,29 @@
       renderPartners();
       renderProjects();
       renderApplications();
+      renderEvents();
+      renderUsers();
     }
 
     async function loadData() {
       try {
-        const [partners, projects, applications] = await Promise.all([
+        const requests = [
           request("/api/organisations"),
           request("/api/projects"),
           request("/api/projectapplications"),
-        ]);
+          request("/api/events"),
+        ];
+        if (role === "admin") requests.push(request("/api/users"));
+        const [partners, projects, applications, events, users] = await Promise.all(requests);
         state.partners = partners || [];
         state.projects = projects || [];
         state.applications = applications || [];
+        state.events = events || [];
+        state.users = users || [];
         renderAll();
       } catch (error) {
-        ["partners-table", "projects-table", "applications-table"].forEach(id => {
+        ["partners-table", "projects-table", "applications-table", "events-table", "users-table"].forEach(id => {
+          if (!document.getElementById(id)) return;
           document.getElementById(id).innerHTML = `<div class="error">Could not load data (${escapeHtml(error.message)}).</div>`;
         });
       }
@@ -732,23 +866,42 @@
     function fieldTemplate(record) {
       return ([name, label, inputType, required, options]) => {
         const value = record[name] ?? defaultValue(name) ?? "";
-        const req = required ? "required" : "";
+        const req = required || (state.modalType === "user" && !state.modalId && name === "password") ? "required" : "";
         const full = inputType === "textarea" ? " full" : "";
         if (inputType === "textarea") {
           return `<div class="form-group${full}"><label>${label}</label><textarea name="${name}" ${req}>${escapeHtml(value)}</textarea></div>`;
         }
         if (inputType === "select") {
-          return `<div class="form-group"><label>${label}</label><select name="${name}" ${req}>${options.map(option => `<option value="${option}" ${value === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
+          return `<div class="form-group"><label>${label}</label><select name="${name}" ${req}>${options.map(option => `<option value="${option}" ${String(value) === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
         }
         if (inputType === "select-org") {
           return `<div class="form-group"><label>${label}</label><select name="${name}" ${req}>${state.partners.map(partner => `<option value="${partner.id}" ${value === partner.id ? "selected" : ""}>${escapeHtml(partner.name)}</option>`).join("")}</select></div>`;
+        }
+        if (inputType === "select-org-empty") {
+          const optionsHtml = [`<option value="">No organisation</option>`]
+            .concat(state.partners.map(partner => `<option value="${partner.id}" ${value === partner.id ? "selected" : ""}>${escapeHtml(partner.name)}</option>`))
+            .join("");
+          return `<div class="form-group"><label>${label}</label><select name="${name}" ${req}>${optionsHtml}</select></div>`;
         }
         return `<div class="form-group${full}"><label>${label}</label><input name="${name}" type="${inputType}" value="${escapeHtml(value)}" ${req} /></div>`;
       };
     }
 
     function defaultValue(name) {
-      const defaults = { partnershipStatus: "prospect", projectType: "capstone", semester: "S1", year: new Date().getFullYear(), status: "proposed", proposedProjectType: "capstone", proposedSemester: "S1", proposedYear: new Date().getFullYear() };
+      const defaults = {
+        partnershipStatus: "prospect",
+        projectType: "capstone",
+        semester: "S1",
+        year: new Date().getFullYear(),
+        status: "proposed",
+        proposedProjectType: "capstone",
+        proposedSemester: "S1",
+        proposedYear: new Date().getFullYear(),
+        eventType: "meeting",
+        eventDate: new Date().toISOString().slice(0, 10),
+        role: "industry_partner",
+        isActive: "true",
+      };
       return defaults[name];
     }
 
@@ -765,9 +918,11 @@
       ["industryId", "facultyId", "year", "proposedYear", "proposedFacultyId"].forEach(key => {
         data[key] = data[key] ? Number(data[key]) : null;
       });
-      ["contactId"].forEach(key => {
+      ["contactId", "organisationId"].forEach(key => {
         data[key] = data[key] || null;
       });
+      if (data.isActive !== undefined) data.isActive = data.isActive === "true";
+      if (data.password === "") data.password = null;
       return data;
     }
 
@@ -775,7 +930,7 @@
       event.preventDefault();
       const type = state.modalType;
       const id = state.modalId;
-      const paths = { partner: "/api/organisations", project: "/api/projects", application: "/api/projectapplications" };
+      const paths = { partner: "/api/organisations", project: "/api/projects", application: "/api/projectapplications", event: "/api/events", user: "/api/users" };
       await request(`${paths[type]}${id ? `/${id}` : ""}`, {
         method: id ? "PUT" : "POST",
         body: JSON.stringify(modalPayload()),
@@ -786,7 +941,7 @@
 
     async function deleteRecord(type, id) {
       if (!confirm("Move this record to deleted records?")) return;
-      const paths = { partner: "/api/organisations", project: "/api/projects", application: "/api/projectapplications" };
+      const paths = { partner: "/api/organisations", project: "/api/projects", application: "/api/projectapplications", event: "/api/events", user: "/api/users" };
       await request(`${paths[type]}/${id}`, { method: "DELETE" });
       await loadData();
     }
@@ -805,8 +960,10 @@
       if (action === "new-partner") return openModal("partner");
       if (action === "new-project") return openModal("project");
       if (action === "new-application") return openModal("application");
+      if (action === "new-event") return openModal("event");
+      if (action === "new-user") return openModal("user");
       const [verb, type] = action.split("-");
-      const collections = { partner: state.partners, project: state.projects, application: state.applications };
+      const collections = { partner: state.partners, project: state.projects, application: state.applications, event: state.events, user: state.users };
       const record = collections[type]?.find(item => item.id === button.dataset.id);
       if (verb === "edit" && record) openModal(type, record);
       if (verb === "delete" && record) void deleteRecord(type, record.id);
@@ -815,6 +972,11 @@
     ["partners-search", "partners-status", "partners-submission"].forEach(id => document.getElementById(id).addEventListener("input", renderPartners));
     ["projects-search", "projects-status", "projects-semester", "projects-year"].forEach(id => document.getElementById(id).addEventListener("input", renderProjects));
     ["applications-search", "applications-status", "applications-semester", "applications-year"].forEach(id => document.getElementById(id).addEventListener("input", renderApplications));
+    ["events-search", "events-type", "events-year"].forEach(id => document.getElementById(id).addEventListener("input", renderEvents));
+    ["users-search", "users-role", "users-active"].forEach(id => {
+      const element = document.getElementById(id);
+      if (element) element.addEventListener("input", renderUsers);
+    });
 
     applyViewMode();
     window.addEventListener("hashchange", applyViewMode);

@@ -110,3 +110,50 @@ public record SaveProjectApplicationRequest(
     int? ProposedYear,
     int? ProposedFacultyId
 );
+
+public record EventListItemDto(
+    Guid Id,
+    string Name,
+    string? Description,
+    string? EventType,
+    DateOnly EventDate,
+    string? Location,
+    int? FacultyId,
+    string? Faculty,
+    int AttendanceCount,
+    DateTime UpdatedAt
+);
+
+public record SaveEventRequest(
+    string Name,
+    string? Description,
+    string? EventType,
+    DateOnly EventDate,
+    string? Location,
+    int? FacultyId,
+    string? Notes
+);
+
+public record UserListItemDto(
+    Guid Id,
+    string Email,
+    string FullName,
+    string Role,
+    int? FacultyId,
+    string? Faculty,
+    Guid? OrganisationId,
+    string? OrganisationName,
+    bool IsActive,
+    DateTime? LastLoginAt,
+    DateTime UpdatedAt
+);
+
+public record SaveUserRequest(
+    string Email,
+    string? Password,
+    string FullName,
+    string Role,
+    int? FacultyId,
+    Guid? OrganisationId,
+    bool IsActive
+);
