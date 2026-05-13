@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organisations — Cobble CRM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+    }
+    nav {
+      background: #002C5F;
+      color: white;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav h1 { font-size: 18px; font-weight: 600; }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    nav a:hover { opacity: 1; }
+    .container { max-width: 1100px; margin: 32px auto; padding: 0 24px; }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .page-header h2 { font-size: 22px; font-weight: 600; }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+    .btn-primary { background: #002C5F; color: white; }
+    .btn-primary:hover { background: #001a3a; }
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .filters input, .filters select {
+      padding: 10px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+    }
+    .filters input { flex: 1; }
+    .filters input:focus, .filters select:focus {
+      outline: none;
+      border-color: #002C5F;
+    }
+    table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      border-collapse: collapse;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    thead { background: #002C5F; color: white; }
+    th { padding: 14px 16px; text-align: left; font-size: 13px; font-weight: 600; }
+    td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #f3f4f6; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9fafb; }
+    .badge {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-active { background: #d1fae5; color: #065f46; }
+    .badge-prospect { background: #dbeafe; color: #1e40af; }
+    .badge-inactive { background: #f3f4f6; color: #6b7280; }
+    .badge-completed { background: #fef3c7; color: #92400e; }
+    .action-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      margin-right: 4px;
+    }
+    .btn-view { background: #eff6ff; color: #1d4ed8; }
+    .btn-delete { background: #fef2f2; color: #991b1b; }
+    .empty { text-align: center; padding: 48px; color: #6b7280; font-size: 15px; }
+    .loading { text-align: center; padding: 48px; color: #6b7280; }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h3 { font-size: 18px; margin-bottom: 20px; color: #002C5F; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+  </style>
+</head>
+<body>
+  <nav>
+    <h1>Cobble CRM</h1>
+    <div style="display:flex;gap:24px;align-items:center;">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="organisations.html">Organisations</a>
+      <a href="login.html" id="logout-btn">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h2>Organisations</h2>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Organisation</button>
+    </div>
+
+    <div class="filters">
+      <input type="text" id="search" placeholder="Search by name..." oninput="loadOrganisations()" />
+      <select id="status-filter" onchange="loadOrganisations()">
+        <option value="">All Statuses</option>
+        <option value="prospect">Prospect</option>
+        <option value="active">Active</option>
+        <option value="completed">Completed</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Industry</th>
+          <th>Status</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="org-table-body">
+        <tr><td colspan="5" class="loading">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add Modal -->
+  <div class="modal-overlay" id="add-modal">
+    <div class="modal">
+      <h3>Add Organisation</h3>
+      <div class="form-group">
+        <label>Name *</label>
+        <input type="text" id="org-name" placeholder="Company name" />
+      </div>
+      <div class="form-group">
+        <label>Industry</label>
+        <select id="org-industry">
+          <option value="">Select industry...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="org-email" placeholder="contact@company.com" />
+      </div>
+      <div class="form-group">
+        <label>Website</label>
+        <input type="text" id="org-website" placeholder="https://company.com" />
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" id="org-phone" placeholder="+61 7 0000 0000" />
+      </div>
+      <div class="form-group">
+        <label>Partnership Status</label>
+        <select id="org-status">
+          <option value="prospect">Prospect</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addOrganisation()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View/Edit Modal -->
+  <div class="modal-overlay" id="view-modal">
+    <div class="modal">
+      <h3>Organisation Details</h3>
+      <div class="form-group">
+        <label>Name *</label>
+        <input type="text" id="view-name" />
+      </div>
+      <div class="form-group">
+        <label>Industry</label>
+        <select id="view-industry">
+          <option value="">Select industry...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="view-email" />
+      </div>
+      <div class="form-group">
+        <label>Website</label>
+        <input type="text" id="view-website" />
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" id="view-phone" />
+      </div>
+      <div class="form-group">
+        <label>Partnership Status</label>
+        <select id="view-status">
+          <option value="prospect">Prospect</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeViewModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveOrg()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+    const token = localStorage.getItem("authToken");
+    let currentOrgId = null;
+    let industries = [];
+
+    if (!token) window.location.href = "login.html";
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    });
+
+    async function loadIndustries() {
+      try {
+        const res = await fetch(`${API_BASE}/api/Industries`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        industries = await res.json();
+
+        const options = industries.map(i => `<option value="${i.id}">${i.name}</option>`).join("");
+        document.getElementById("org-industry").innerHTML += options;
+        document.getElementById("view-industry").innerHTML += options;
+      } catch (err) {
+        console.error("Failed to load industries");
+      }
+    }
+
+    async function loadOrganisations() {
+      const search = document.getElementById("search").value;
+      const status = document.getElementById("status-filter").value;
+
+      let url = `${API_BASE}/api/Organisations?`;
+      if (search) url += `search=${encodeURIComponent(search)}&`;
+      if (status) url += `status=${encodeURIComponent(status)}`;
+
+      const tbody = document.getElementById("org-table-body");
+      tbody.innerHTML = `<tr><td colspan="5" class="loading">Loading...</td></tr>`;
+
+      try {
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const orgs = await res.json();
+
+        if (orgs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="empty">No organisations found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = orgs.map(org => `
+          <tr>
+            <td><strong>${org.name}</strong></td>
+            <td>${org.industry ?? org.industry?.name ?? "—"}</td>
+            <td><span class="badge badge-${org.partnershipStatus}">${org.partnershipStatus}</span></td>
+            <td>${org.email ?? "—"}</td>
+            <td>
+              <button class="action-btn btn-view" onclick="viewOrg('${org.id}')">View</button>
+              <button class="action-btn btn-delete" onclick="deleteOrg('${org.id}')">Delete</button>
+            </td>
+          </tr>
+        `).join("");
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">Failed to load. Is the API running?</td></tr>`;
+      }
+    }
+
+    async function viewOrg(id) {
+      currentOrgId = id;
+      try {
+        const res = await fetch(`${API_BASE}/api/Organisations/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const org = await res.json();
+
+        document.getElementById("view-name").value = org.name ?? "";
+        document.getElementById("view-email").value = org.email ?? "";
+        document.getElementById("view-website").value = org.website ?? "";
+        document.getElementById("view-phone").value = org.phone ?? "";
+        document.getElementById("view-status").value = org.partnershipStatus ?? "prospect";
+        document.getElementById("view-industry").value = org.industryId ?? "";
+
+        document.getElementById("view-modal").classList.add("active");
+      } catch (err) {
+        alert("Failed to load organisation.");
+      }
+    }
+
+    async function saveOrg() {
+      const body = {
+        name: document.getElementById("view-name").value,
+        email: document.getElementById("view-email").value,
+        website: document.getElementById("view-website").value,
+        phone: document.getElementById("view-phone").value,
+        partnershipStatus: document.getElementById("view-status").value,
+        industryId: document.getElementById("view-industry").value || null,
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/Organisations/${currentOrgId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error();
+        closeViewModal();
+        loadOrganisations();
+      } catch (err) {
+        alert("Failed to save changes.");
+      }
+    }
+
+    async function addOrganisation() {
+      const name = document.getElementById("org-name").value;
+      if (!name) { alert("Name is required."); return; }
+
+      const body = {
+        name,
+        email: document.getElementById("org-email").value,
+        website: document.getElementById("org-website").value,
+        phone: document.getElementById("org-phone").value,
+        partnershipStatus: document.getElementById("org-status").value,
+        industryId: document.getElementById("org-industry").value || null,
+        submissionStatus: "approved"
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/Organisations`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error();
+        closeAddModal();
+        loadOrganisations();
+      } catch (err) {
+        alert("Failed to add organisation.");
+      }
+    }
+
+    async function deleteOrg(id) {
+      if (!confirm("Are you sure you want to delete this organisation?")) return;
+      try {
+        await fetch(`${API_BASE}/api/Organisations/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        loadOrganisations();
+      } catch (err) {
+        alert("Failed to delete.");
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById("add-modal").classList.add("active");
+    }
+
+    function closeAddModal() {
+      document.getElementById("add-modal").classList.remove("active");
+      document.getElementById("org-name").value = "";
+      document.getElementById("org-email").value = "";
+      document.getElementById("org-website").value = "";
+      document.getElementById("org-phone").value = "";
+      document.getElementById("org-industry").value = "";
+    }
+
+    function closeViewModal() {
+      document.getElementById("view-modal").classList.remove("active");
+      currentOrgId = null;
+    }
+
+    loadIndustries();
+    loadOrganisations();
+  </script>
+</body>
+</html>

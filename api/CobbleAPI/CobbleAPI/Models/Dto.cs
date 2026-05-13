@@ -30,6 +30,7 @@ public record OrganisationListItemDto(
     Guid Id,
     string Name,
     string? Industry,
+    string? Email,
     string PartnershipStatus,
     string SubmissionStatus,
     string? PrimaryContactName,
