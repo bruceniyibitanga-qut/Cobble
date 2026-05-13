@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, staging]
+  push:
+    branches: [main, staging]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore packages
+        run: dotnet restore
+        working-directory: api/CobbleAPI
+
+      - name: Build
+        run: dotnet build --no-restore -warnAsError
+        working-directory: api/CobbleAPI
+
+      - name: Check formatting
+        run: dotnet format --verify-no-changes --no-restore
+        working-directory: api/CobbleAPI/CobbleAPI
+
+      - name: Run unit tests
+        run: dotnet test --no-build --verbosity normal
+        working-directory: api/CobbleAPI
