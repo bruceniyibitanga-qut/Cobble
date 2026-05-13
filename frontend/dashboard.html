@@ -48,6 +48,23 @@
       font-size: 14px;
     }
 
+    .top-nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .top-nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.82;
+    }
+
+    .top-nav a:hover,
+    .top-nav a.active { opacity: 1; }
+
     .user-block { text-align: right; line-height: 1.3; }
     .user-name { font-weight: 600; }
     .user-meta { font-size: 12px; opacity: 0.75; }
@@ -226,6 +243,12 @@
       </div>
     </div>
     <div class="header-right">
+      <nav class="top-nav" aria-label="Primary">
+        <a class="active" href="dashboard.html">Dashboard</a>
+        <a href="platform-view.html#partners">Organisations</a>
+        <a href="platform-view.html#projects">Projects</a>
+        <a href="platform-view.html#applications">Applications</a>
+      </nav>
       <div class="user-block">
         <div class="user-name" id="header-name"></div>
         <div class="user-meta">

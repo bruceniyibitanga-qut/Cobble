@@ -30,6 +30,10 @@ public record OrganisationListItemDto(
     Guid Id,
     string Name,
     string? Industry,
+    int? IndustryId,
+    string? Email,
+    string? Website,
+    string? Phone,
     string PartnershipStatus,
     string SubmissionStatus,
     string? PrimaryContactName,
@@ -39,10 +43,23 @@ public record OrganisationListItemDto(
     DateTime UpdatedAt
 );
 
+public record SaveOrganisationRequest(
+    string Name,
+    int? IndustryId,
+    string? Email,
+    string? Website,
+    string? Phone,
+    string PartnershipStatus,
+    string? Notes
+);
+
 public record ProjectListItemDto(
     Guid Id,
     string Title,
+    string? Description,
+    Guid OrganisationId,
     string OrganisationName,
+    int? FacultyId,
     string? Faculty,
     string ProjectType,
     string Semester,
@@ -53,10 +70,27 @@ public record ProjectListItemDto(
     DateTime UpdatedAt
 );
 
+public record SaveProjectRequest(
+    string Title,
+    string? Description,
+    Guid OrganisationId,
+    int? FacultyId,
+    string ProjectType,
+    string Semester,
+    int Year,
+    string Status,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    string? Notes
+);
+
 public record ProjectApplicationListItemDto(
     Guid Id,
     string ProposedTitle,
+    string? ProposedDescription,
+    Guid OrganisationId,
     string OrganisationName,
+    Guid? ContactId,
     string? ContactName,
     string? ProposedProjectType,
     string? ProposedSemester,
@@ -64,4 +98,15 @@ public record ProjectApplicationListItemDto(
     string? ProposedFaculty,
     string ApplicationStatus,
     DateTime SubmittedAt
+);
+
+public record SaveProjectApplicationRequest(
+    Guid OrganisationId,
+    Guid? ContactId,
+    string ProposedTitle,
+    string? ProposedDescription,
+    string? ProposedProjectType,
+    string? ProposedSemester,
+    int? ProposedYear,
+    int? ProposedFacultyId
 );

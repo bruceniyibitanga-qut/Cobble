@@ -30,6 +30,23 @@
     .header-subtitle { font-size: 12px; opacity: 0.75; margin-top: 1px; }
     .header-right { display: flex; align-items: center; gap: 12px; }
 
+    .top-nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .top-nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.82;
+    }
+
+    .top-nav a:hover,
+    .top-nav a.active { opacity: 1; }
+
     .nav-link,
     .logout-btn {
       background: rgba(255,255,255,0.12);
@@ -124,6 +141,52 @@
       font-size: 13px;
     }
 
+    .section-tools {
+      padding: 14px 18px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .section-tools input,
+    .section-tools select {
+      padding: 9px 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 13px;
+      background: white;
+    }
+
+    .section-tools input { min-width: 220px; flex: 1; }
+
+    .action-btn,
+    .primary-btn {
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .primary-btn {
+      background: #002C5F;
+      color: white;
+      padding: 9px 13px;
+      margin-left: auto;
+    }
+
+    .action-btn {
+      padding: 5px 9px;
+      margin-right: 5px;
+    }
+
+    .edit-btn { background: #eff6ff; color: #1d4ed8; }
+    .delete-btn { background: #fef2f2; color: #991b1b; }
+
     .table-wrap { overflow-x: auto; }
 
     table {
@@ -189,6 +252,85 @@
       background: #fef2f2;
       border-top: 1px solid #fecaca;
     }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 8px;
+      width: min(560px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.24);
+      padding: 22px;
+    }
+
+    .modal h2 {
+      font-size: 18px;
+      color: #002C5F;
+      margin-bottom: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 14px;
+    }
+
+    .form-group textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .secondary-btn {
+      background: #f3f4f6;
+      color: #374151;
+      padding: 9px 13px;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
@@ -201,7 +343,12 @@
       </div>
     </div>
     <div class="header-right">
-      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="platform-view.html#partners" data-nav-view="partners">Organisations</a>
+        <a href="platform-view.html#projects" data-nav-view="projects">Projects</a>
+        <a href="platform-view.html#applications" data-nav-view="applications">Applications</a>
+      </nav>
       <button class="logout-btn" id="logout-btn">Sign out</button>
     </div>
   </header>
@@ -232,6 +379,24 @@
         <h2>Industry Partners</h2>
         <span>Organisations visible to your role</span>
       </div>
+      <div class="section-tools">
+        <input id="partners-search" type="search" placeholder="Search partners..." />
+        <select id="partners-status">
+          <option value="">All partnership statuses</option>
+          <option value="prospect">Prospect</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <select id="partners-submission">
+          <option value="">All submission statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="archived">Archived</option>
+        </select>
+        <button class="primary-btn" data-action="new-partner" data-create-type="partner">Add Partner</button>
+      </div>
       <div class="table-wrap" id="partners-table"></div>
     </section>
 
@@ -239,6 +404,24 @@
       <div class="section-header">
         <h2>Projects</h2>
         <span>Approved and active project records</span>
+      </div>
+      <div class="section-tools">
+        <input id="projects-search" type="search" placeholder="Search projects..." />
+        <select id="projects-status">
+          <option value="">All statuses</option>
+          <option value="proposed">Proposed</option>
+          <option value="ongoing">Ongoing</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <select id="projects-semester">
+          <option value="">All semesters</option>
+          <option value="S1">S1</option>
+          <option value="S2">S2</option>
+          <option value="SS">SS</option>
+        </select>
+        <input id="projects-year" type="number" min="2019" max="2100" placeholder="Year" />
+        <button class="primary-btn" data-action="new-project" data-create-type="project">Add Project</button>
       </div>
       <div class="table-wrap" id="projects-table"></div>
     </section>
@@ -248,9 +431,38 @@
         <h2>Project Applications</h2>
         <span>Partner-facing project submissions</span>
       </div>
+      <div class="section-tools">
+        <input id="applications-search" type="search" placeholder="Search applications..." />
+        <select id="applications-status">
+          <option value="pending">Pending</option>
+          <option value="rejected">Rejected</option>
+          <option value="archived">Archived</option>
+        </select>
+        <select id="applications-semester">
+          <option value="">All semesters</option>
+          <option value="S1">S1</option>
+          <option value="S2">S2</option>
+          <option value="SS">SS</option>
+        </select>
+        <input id="applications-year" type="number" min="2019" max="2100" placeholder="Year" />
+        <button class="primary-btn" data-action="new-application" data-create-type="application">Add Application</button>
+      </div>
       <div class="table-wrap" id="applications-table"></div>
     </section>
   </main>
+
+  <div class="modal-overlay" id="record-modal">
+    <div class="modal">
+      <h2 id="modal-title"></h2>
+      <form id="record-form">
+        <div class="form-grid" id="modal-fields"></div>
+        <div class="modal-actions">
+          <button type="button" class="secondary-btn" id="modal-cancel">Cancel</button>
+          <button type="submit" class="primary-btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script>
     const API_BASE = "http://localhost:8080";
@@ -258,21 +470,20 @@
     const role = (localStorage.getItem("userRole") || "").toLowerCase();
     const fullName = localStorage.getItem("userName") || "User";
 
-    if (!token) {
-      window.location.href = "login.html";
-    }
+    const state = {
+      partners: [],
+      projects: [],
+      applications: [],
+      modalType: "",
+      modalId: null,
+    };
 
-    document.getElementById("view-context").textContent =
-      `${fullName} (${prettyRole(role) || "signed in"}) can see records scoped by the API.`;
+    if (!token) window.location.href = "login.html";
 
     document.getElementById("logout-btn").addEventListener("click", () => {
       localStorage.clear();
       window.location.href = "login.html";
     });
-
-    function prettyRole(value) {
-      return value.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-    }
 
     const VIEW_COPY = {
       partners: {
@@ -289,6 +500,38 @@
       },
     };
 
+    const FIELD_SETS = {
+      partner: [
+        ["name", "Name", "text", true],
+        ["industryId", "Industry ID", "number", false],
+        ["email", "Email", "email", false],
+        ["website", "Website", "text", false],
+        ["phone", "Phone", "text", false],
+        ["partnershipStatus", "Partnership status", "select", true, ["prospect", "active", "completed", "inactive"]],
+        ["notes", "Notes", "textarea", false],
+      ],
+      project: [
+        ["title", "Title", "text", true],
+        ["description", "Description", "textarea", false],
+        ["organisationId", "Organisation", "select-org", true],
+        ["facultyId", "Faculty ID", "number", false],
+        ["projectType", "Project type", "select", true, ["capstone", "undergrad", "postgrad"]],
+        ["semester", "Semester", "select", true, ["S1", "S2", "SS"]],
+        ["year", "Year", "number", true],
+        ["status", "Status", "select", true, ["proposed", "ongoing", "completed", "cancelled"]],
+      ],
+      application: [
+        ["proposedTitle", "Proposed title", "text", true],
+        ["proposedDescription", "Description", "textarea", false],
+        ["organisationId", "Organisation", "select-org", true],
+        ["contactId", "Contact ID", "text", false],
+        ["proposedProjectType", "Project type", "select", false, ["capstone", "undergrad", "postgrad"]],
+        ["proposedSemester", "Semester", "select", false, ["S1", "S2", "SS"]],
+        ["proposedYear", "Year", "number", false],
+        ["proposedFacultyId", "Faculty ID", "number", false],
+      ],
+    };
+
     function selectedView() {
       const view = window.location.hash.replace("#", "");
       return VIEW_COPY[view] ? view : "all";
@@ -297,7 +540,6 @@
     function applyViewMode() {
       const view = selectedView();
       const copy = VIEW_COPY[view];
-
       document.getElementById("page-heading").textContent = copy ? copy.title : "Partner and Projects View";
       document.getElementById("view-context").textContent = copy
         ? copy.context
@@ -306,16 +548,16 @@
       document.querySelectorAll("[data-view]").forEach(section => {
         section.classList.toggle("hidden", view !== "all" && section.dataset.view !== view);
       });
-
       document.querySelectorAll("[data-summary]").forEach(summary => {
         summary.classList.toggle("hidden", view !== "all" && summary.dataset.summary !== view);
       });
+      document.querySelectorAll("[data-nav-view]").forEach(link => {
+        link.classList.toggle("active", link.dataset.navView === view);
+      });
     }
 
-    function status(value) {
-      if (!value) return "";
-      const cls = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      return `<span class="status status-${cls}">${escapeHtml(value)}</span>`;
+    function prettyRole(value) {
+      return value.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
     }
 
     function escapeHtml(value) {
@@ -327,117 +569,256 @@
         .replace(/'/g, "&#039;");
     }
 
-    function formatDate(value) {
+    function status(value) {
       if (!value) return "";
-      return new Intl.DateTimeFormat("en-AU", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }).format(new Date(value));
+      const cls = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      return `<span class="status status-${cls}">${escapeHtml(value)}</span>`;
     }
 
-    async function getJson(path) {
-      const response = await fetch(`${API_BASE}${path}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    function canCreate(type) {
+      if (type === "partner" || type === "project") return role === "admin" || role === "course_organiser";
+      if (type === "application") return ["admin", "course_organiser", "industry_partner"].includes(role);
+      return false;
+    }
 
+    function canEdit(type) {
+      return canCreate(type);
+    }
+
+    function canDelete(type) {
+      if (type === "partner" || type === "project") return role === "admin";
+      if (type === "application") return role === "admin" || role === "course_organiser";
+      return false;
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      return new Intl.DateTimeFormat("en-AU", { year: "numeric", month: "short", day: "numeric" }).format(new Date(value));
+    }
+
+    async function request(path, options = {}) {
+      const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...(options.headers || {}),
+        },
+      });
       if (response.status === 401) {
         localStorage.clear();
         window.location.href = "login.html";
-        return [];
+        return null;
       }
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (response.status === 204) return null;
       return response.json();
     }
 
     function renderTable(targetId, columns, rows) {
       const target = document.getElementById(targetId);
-
       if (!rows.length) {
         target.innerHTML = `<div class="empty">No records to display.</div>`;
         return;
       }
-
       const headings = columns.map(col => `<th>${escapeHtml(col.label)}</th>`).join("");
-      const body = rows.map(row => {
-        const cells = columns.map(col => `<td>${col.render(row)}</td>`).join("");
-        return `<tr>${cells}</tr>`;
-      }).join("");
-
+      const body = rows.map(row => `<tr>${columns.map(col => `<td>${col.render(row)}</td>`).join("")}</tr>`).join("");
       target.innerHTML = `<table><thead><tr>${headings}</tr></thead><tbody>${body}</tbody></table>`;
     }
 
-    function renderError(targetId, error) {
-      document.getElementById(targetId).innerHTML =
-        `<div class="error">Could not load this section (${escapeHtml(error.message)}).</div>`;
+    function filterRows(rows, filters) {
+      return rows.filter(row => Object.entries(filters).every(([key, expected]) => {
+        if (!expected) return true;
+        return String(row[key] ?? "").toLowerCase().includes(String(expected).toLowerCase());
+      }));
     }
 
-    async function loadPartners() {
+    function renderPartners() {
+      const rows = filterRows(state.partners, {
+        name: document.getElementById("partners-search").value,
+        partnershipStatus: document.getElementById("partners-status").value,
+        submissionStatus: document.getElementById("partners-submission").value,
+      });
+      document.getElementById("partners-count").textContent = rows.length;
+      renderTable("partners-table", [
+        { label: "Name", render: row => escapeHtml(row.name) },
+        { label: "Industry", render: row => escapeHtml(row.industry || "Unspecified") },
+        { label: "Partnership", render: row => status(row.partnershipStatus) },
+        { label: "Submission", render: row => status(row.submissionStatus) },
+        { label: "Email", render: row => escapeHtml(row.email || row.primaryContactEmail || "") },
+        { label: "Projects", render: row => escapeHtml(row.projectCount) },
+        { label: "Pending apps", render: row => escapeHtml(row.pendingApplicationCount) },
+        { label: "Actions", render: row => actionButtons("partner", row.id) },
+      ], rows);
+    }
+
+    function renderProjects() {
+      const rows = filterRows(state.projects, {
+        title: document.getElementById("projects-search").value,
+        status: document.getElementById("projects-status").value,
+        semester: document.getElementById("projects-semester").value,
+        year: document.getElementById("projects-year").value,
+      });
+      document.getElementById("projects-count").textContent = rows.length;
+      renderTable("projects-table", [
+        { label: "Title", render: row => escapeHtml(row.title) },
+        { label: "Partner", render: row => escapeHtml(row.organisationName) },
+        { label: "Type", render: row => escapeHtml(row.projectType) },
+        { label: "Intake", render: row => escapeHtml(`${row.semester} ${row.year}`) },
+        { label: "Status", render: row => status(row.status) },
+        { label: "Updated", render: row => escapeHtml(formatDate(row.updatedAt)) },
+        { label: "Actions", render: row => actionButtons("project", row.id) },
+      ], rows);
+    }
+
+    function renderApplications() {
+      const rows = filterRows(state.applications, {
+        proposedTitle: document.getElementById("applications-search").value,
+        applicationStatus: document.getElementById("applications-status").value,
+        proposedSemester: document.getElementById("applications-semester").value,
+        proposedYear: document.getElementById("applications-year").value,
+      });
+      document.getElementById("applications-count").textContent = rows.length;
+      renderTable("applications-table", [
+        { label: "Proposed title", render: row => escapeHtml(row.proposedTitle) },
+        { label: "Partner", render: row => escapeHtml(row.organisationName) },
+        { label: "Type", render: row => escapeHtml(row.proposedProjectType || "") },
+        { label: "Intake", render: row => escapeHtml([row.proposedSemester, row.proposedYear].filter(Boolean).join(" ")) },
+        { label: "Status", render: row => status(row.applicationStatus) },
+        { label: "Submitted", render: row => escapeHtml(formatDate(row.submittedAt)) },
+        { label: "Actions", render: row => actionButtons("application", row.id) },
+      ], rows);
+    }
+
+    function actionButtons(type, id) {
+      const buttons = [];
+      if (canEdit(type)) buttons.push(`<button class="action-btn edit-btn" data-action="edit-${type}" data-id="${id}">Edit</button>`);
+      if (canDelete(type)) buttons.push(`<button class="action-btn delete-btn" data-action="delete-${type}" data-id="${id}">Delete</button>`);
+      return buttons.join("");
+    }
+
+    function renderAll() {
+      renderPartners();
+      renderProjects();
+      renderApplications();
+    }
+
+    async function loadData() {
       try {
-        const rows = await getJson("/api/organisations");
-        document.getElementById("partners-count").textContent = rows.length;
-        renderTable("partners-table", [
-          { label: "Name", render: row => escapeHtml(row.name) },
-          { label: "Industry", render: row => escapeHtml(row.industry || "Unspecified") },
-          { label: "Partnership", render: row => status(row.partnershipStatus) },
-          { label: "Submission", render: row => status(row.submissionStatus) },
-          { label: "Primary contact", render: row => escapeHtml(row.primaryContactName || "") },
-          { label: "Email", render: row => escapeHtml(row.primaryContactEmail || "") },
-          { label: "Projects", render: row => escapeHtml(row.projectCount) },
-          { label: "Pending apps", render: row => escapeHtml(row.pendingApplicationCount) },
-        ], rows);
+        const [partners, projects, applications] = await Promise.all([
+          request("/api/organisations"),
+          request("/api/projects"),
+          request("/api/projectapplications"),
+        ]);
+        state.partners = partners || [];
+        state.projects = projects || [];
+        state.applications = applications || [];
+        renderAll();
       } catch (error) {
-        document.getElementById("partners-count").textContent = "!";
-        renderError("partners-table", error);
+        ["partners-table", "projects-table", "applications-table"].forEach(id => {
+          document.getElementById(id).innerHTML = `<div class="error">Could not load data (${escapeHtml(error.message)}).</div>`;
+        });
       }
     }
 
-    async function loadProjects() {
-      try {
-        const rows = await getJson("/api/projects");
-        document.getElementById("projects-count").textContent = rows.length;
-        renderTable("projects-table", [
-          { label: "Title", render: row => escapeHtml(row.title) },
-          { label: "Partner", render: row => escapeHtml(row.organisationName) },
-          { label: "Faculty", render: row => escapeHtml(row.faculty || "Unspecified") },
-          { label: "Type", render: row => escapeHtml(row.projectType) },
-          { label: "Intake", render: row => escapeHtml(`${row.semester} ${row.year}`) },
-          { label: "Status", render: row => status(row.status) },
-          { label: "Updated", render: row => escapeHtml(formatDate(row.updatedAt)) },
-        ], rows);
-      } catch (error) {
-        document.getElementById("projects-count").textContent = "!";
-        renderError("projects-table", error);
-      }
+    function openModal(type, record = {}) {
+      state.modalType = type;
+      state.modalId = record.id || null;
+      document.getElementById("modal-title").textContent = `${record.id ? "Edit" : "Add"} ${type}`;
+      document.getElementById("modal-fields").innerHTML = FIELD_SETS[type].map(fieldTemplate(record)).join("");
+      document.getElementById("record-modal").classList.add("active");
     }
 
-    async function loadApplications() {
-      try {
-        const rows = await getJson("/api/projectapplications");
-        document.getElementById("applications-count").textContent = rows.length;
-        renderTable("applications-table", [
-          { label: "Proposed title", render: row => escapeHtml(row.proposedTitle) },
-          { label: "Partner", render: row => escapeHtml(row.organisationName) },
-          { label: "Contact", render: row => escapeHtml(row.contactName || "") },
-          { label: "Type", render: row => escapeHtml(row.proposedProjectType || "") },
-          { label: "Intake", render: row => escapeHtml([row.proposedSemester, row.proposedYear].filter(Boolean).join(" ")) },
-          { label: "Faculty", render: row => escapeHtml(row.proposedFaculty || "") },
-          { label: "Status", render: row => status(row.applicationStatus) },
-          { label: "Submitted", render: row => escapeHtml(formatDate(row.submittedAt)) },
-        ], rows);
-      } catch (error) {
-        document.getElementById("applications-count").textContent = "!";
-        renderError("applications-table", error);
-      }
+    function fieldTemplate(record) {
+      return ([name, label, inputType, required, options]) => {
+        const value = record[name] ?? defaultValue(name) ?? "";
+        const req = required ? "required" : "";
+        const full = inputType === "textarea" ? " full" : "";
+        if (inputType === "textarea") {
+          return `<div class="form-group${full}"><label>${label}</label><textarea name="${name}" ${req}>${escapeHtml(value)}</textarea></div>`;
+        }
+        if (inputType === "select") {
+          return `<div class="form-group"><label>${label}</label><select name="${name}" ${req}>${options.map(option => `<option value="${option}" ${value === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
+        }
+        if (inputType === "select-org") {
+          return `<div class="form-group"><label>${label}</label><select name="${name}" ${req}>${state.partners.map(partner => `<option value="${partner.id}" ${value === partner.id ? "selected" : ""}>${escapeHtml(partner.name)}</option>`).join("")}</select></div>`;
+        }
+        return `<div class="form-group${full}"><label>${label}</label><input name="${name}" type="${inputType}" value="${escapeHtml(value)}" ${req} /></div>`;
+      };
     }
+
+    function defaultValue(name) {
+      const defaults = { partnershipStatus: "prospect", projectType: "capstone", semester: "S1", year: new Date().getFullYear(), status: "proposed", proposedProjectType: "capstone", proposedSemester: "S1", proposedYear: new Date().getFullYear() };
+      return defaults[name];
+    }
+
+    function closeModal() {
+      document.getElementById("record-modal").classList.remove("active");
+      document.getElementById("record-form").reset();
+      state.modalType = "";
+      state.modalId = null;
+    }
+
+    function modalPayload() {
+      const form = new FormData(document.getElementById("record-form"));
+      const data = Object.fromEntries(form.entries());
+      ["industryId", "facultyId", "year", "proposedYear", "proposedFacultyId"].forEach(key => {
+        data[key] = data[key] ? Number(data[key]) : null;
+      });
+      ["contactId"].forEach(key => {
+        data[key] = data[key] || null;
+      });
+      return data;
+    }
+
+    async function saveModal(event) {
+      event.preventDefault();
+      const type = state.modalType;
+      const id = state.modalId;
+      const paths = { partner: "/api/organisations", project: "/api/projects", application: "/api/projectapplications" };
+      await request(`${paths[type]}${id ? `/${id}` : ""}`, {
+        method: id ? "PUT" : "POST",
+        body: JSON.stringify(modalPayload()),
+      });
+      closeModal();
+      await loadData();
+    }
+
+    async function deleteRecord(type, id) {
+      if (!confirm("Move this record to deleted records?")) return;
+      const paths = { partner: "/api/organisations", project: "/api/projects", application: "/api/projectapplications" };
+      await request(`${paths[type]}/${id}`, { method: "DELETE" });
+      await loadData();
+    }
+
+    document.getElementById("record-form").addEventListener("submit", saveModal);
+    document.getElementById("modal-cancel").addEventListener("click", closeModal);
+    document.querySelectorAll("[data-create-type]").forEach(button => {
+      button.hidden = !canCreate(button.dataset.createType);
+    });
+
+    document.addEventListener("click", event => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
+      if (!action) return;
+      if (action === "new-partner") return openModal("partner");
+      if (action === "new-project") return openModal("project");
+      if (action === "new-application") return openModal("application");
+      const [verb, type] = action.split("-");
+      const collections = { partner: state.partners, project: state.projects, application: state.applications };
+      const record = collections[type]?.find(item => item.id === button.dataset.id);
+      if (verb === "edit" && record) openModal(type, record);
+      if (verb === "delete" && record) void deleteRecord(type, record.id);
+    });
+
+    ["partners-search", "partners-status", "partners-submission"].forEach(id => document.getElementById(id).addEventListener("input", renderPartners));
+    ["projects-search", "projects-status", "projects-semester", "projects-year"].forEach(id => document.getElementById(id).addEventListener("input", renderProjects));
+    ["applications-search", "applications-status", "applications-semester", "applications-year"].forEach(id => document.getElementById(id).addEventListener("input", renderApplications));
 
     applyViewMode();
     window.addEventListener("hashchange", applyViewMode);
-    void Promise.all([loadPartners(), loadProjects(), loadApplications()]);
+    void loadData();
   </script>
 </body>
 </html>
