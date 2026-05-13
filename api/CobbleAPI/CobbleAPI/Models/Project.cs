@@ -20,7 +20,7 @@ public class Project
     public Guid? UpdatedBy { get; set; }
     public DateTime? DeletedAt { get; set; }
 
-    public Organisation Organisation { get; set; } = null!;
+    public Organisation? Organisation { get; set; }
     public Faculty? Faculty { get; set; }
     public ICollection<ProjectApplication> Applications { get; set; } = new List<ProjectApplication>();
 }

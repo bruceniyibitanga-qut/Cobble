@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUT Industry Relations Database — Login</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #002C5F 0%, #001a3a 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .brand { text-align: center; margin-bottom: 32px; }
+
+    .brand-logo {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      display: block;
+    }
+
+    h1 {
+      font-size: 22px;
+      color: #002C5F;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .subtitle { color: #6b7280; font-size: 14px; }
+
+    .form-group { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #002C5F;
+      box-shadow: 0 0 0 3px rgba(0, 44, 95, 0.15);
+    }
+
+    .options-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #6b7280;
+      cursor: pointer;
+    }
+
+    .checkbox-label input { width: auto; margin: 0; }
+
+    .forgot-link {
+      color: #002C5F;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .forgot-link:hover { text-decoration: underline; }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      background: #002C5F;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+
+    button:hover { background: #001a3a; }
+    button:active { transform: translateY(1px); }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    .message {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+
+    .message.error {
+      display: block;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .message.success {
+      display: block;
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .test-accounts {
+      margin-top: 20px;
+      padding: 14px;
+      background: #f8f9fb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #4b5563;
+    }
+
+    .test-accounts strong { color: #002C5F; display: block; margin-bottom: 6px; }
+
+    .test-accounts code {
+      background: #eef2f7;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 11px;
+    }
+
+    .test-account-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="brand">
+      <img src="qut-logo.svg" alt="QUT logo" class="brand-logo" />
+      <h1>Industry Relations Database</h1>
+      <p class="subtitle">Sign in to access the dashboard</p>
+    </div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="staff@qut.edu.au" required autocomplete="email" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password" />
+      </div>
+
+      <div class="options-row">
+        <label class="checkbox-label">
+          <input type="checkbox" id="remember" />
+          <span>Remember me</span>
+        </label>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <button type="submit" id="submit-btn">Sign In</button>
+
+      <div id="message" class="message"></div>
+    </form>
+
+    <div class="test-accounts">
+      <strong>Test accounts (click to autofill)</strong>
+      <div class="test-account-row" data-email="admin@system.com" data-password="Admin123!">
+        <span>Admin</span>
+        <code>admin@system.com</code>
+      </div>
+      <div class="test-account-row" data-email="staff@system.com" data-password="Staff123!">
+        <span>Staff</span>
+        <code>staff@system.com</code>
+      </div>
+      <div class="test-account-row" data-email="faculty@system.com" data-password="Faculty123!">
+        <span>Faculty</span>
+        <code>faculty@system.com</code>
+      </div>
+    </div>
+
+    <p class="footer">QUT Professional Services &middot; IFB398 Capstone</p>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+
+    const form = document.getElementById("login-form");
+    const message = document.getElementById("message");
+    const submitBtn = document.getElementById("submit-btn");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+
+    // Click a test account row to autofill
+    document.querySelectorAll(".test-account-row").forEach((row) => {
+      row.style.cursor = "pointer";
+      row.addEventListener("click", () => {
+        emailInput.value = row.dataset.email;
+        passwordInput.value = row.dataset.password;
+      });
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.className = "message";
+      message.textContent = "";
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Signing in...";
+
+      try {
+        const response = await fetch(`${API_BASE}/api/Auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Email: emailInput.value,
+            Password: passwordInput.value,
+          }),
+        });
+
+        if (!response.ok) {
+          let errMsg = `Login failed (HTTP ${response.status}).`;
+          if (response.status === 401) errMsg = "Invalid email or password.";
+          throw new Error(errMsg);
+        }
+
+        const data = await response.json();
+
+        // Persist auth state for other pages to read
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("userEmail", data.email);
+        localStorage.setItem("userName", data.fullName);
+        localStorage.setItem("userRole", data.role);
+        localStorage.setItem("facultyId", data.facultyId || "");
+        localStorage.setItem("organisationId", data.organisationId || "");
+
+        message.className = "message success";
+        message.textContent = `Welcome, ${data.fullName}. Redirecting...`;
+
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 600);
+      } catch (err) {
+        message.className = "message error";
+        message.textContent = err.message + " Is the API running on port 8080?";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Sign In";
+      }
+    });
+  </script>
+</body>
+</html>
