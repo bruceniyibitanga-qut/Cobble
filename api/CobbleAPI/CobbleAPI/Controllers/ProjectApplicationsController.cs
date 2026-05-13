@@ -24,7 +24,11 @@ public class ProjectApplicationsController : ControllerBase
     {
         var query = _context.ProjectApplications
             .AsNoTracking()
-            .Where(a => a.DeletedAt == null && a.Organisation.DeletedAt == null);
+            .Where(a =>
+                a.DeletedAt == null &&
+                a.Organisation.DeletedAt == null &&
+                a.ApplicationStatus == "pending" &&
+                a.ResultingProjectId == null);
 
         query = ApplyApplicationScope(query);
 

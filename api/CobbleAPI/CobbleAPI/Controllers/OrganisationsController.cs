@@ -45,6 +45,10 @@ public class OrganisationsController : ControllerBase
                     .Select(c => c.Email)
                     .FirstOrDefault(),
                 o.Projects.Count(p => p.DeletedAt == null),
+                o.ProjectApplications.Count(a =>
+                    a.DeletedAt == null &&
+                    a.ApplicationStatus == "pending" &&
+                    a.ResultingProjectId == null),
                 o.UpdatedAt
             ))
             .ToListAsync();

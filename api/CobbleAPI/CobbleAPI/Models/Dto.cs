@@ -35,6 +35,7 @@ public record OrganisationListItemDto(
     string? PrimaryContactName,
     string? PrimaryContactEmail,
     int ProjectCount,
+    int PendingApplicationCount,
     DateTime UpdatedAt
 );
 

@@ -79,6 +79,8 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
+    .hidden { display: none; }
+
     .summary-label {
       color: #6b7280;
       font-size: 12px;
@@ -206,26 +208,26 @@
 
   <main class="container">
     <div class="page-title">
-      <h1>Partner and Projects View</h1>
+      <h1 id="page-heading">Partner and Projects View</h1>
       <p id="view-context">Loading organiser-facing and partner-facing data...</p>
     </div>
 
     <div class="summary-grid">
-      <div class="summary">
+      <div class="summary" data-summary="partners">
         <div class="summary-label">Partners</div>
         <div class="summary-value" id="partners-count">-</div>
       </div>
-      <div class="summary">
+      <div class="summary" data-summary="projects">
         <div class="summary-label">Projects</div>
         <div class="summary-value" id="projects-count">-</div>
       </div>
-      <div class="summary">
+      <div class="summary" data-summary="applications">
         <div class="summary-label">Applications</div>
         <div class="summary-value" id="applications-count">-</div>
       </div>
     </div>
 
-    <section class="section" id="partners">
+    <section class="section" id="partners" data-view="partners">
       <div class="section-header">
         <h2>Industry Partners</h2>
         <span>Organisations visible to your role</span>
@@ -233,7 +235,7 @@
       <div class="table-wrap" id="partners-table"></div>
     </section>
 
-    <section class="section" id="projects">
+    <section class="section" id="projects" data-view="projects">
       <div class="section-header">
         <h2>Projects</h2>
         <span>Approved and active project records</span>
@@ -241,7 +243,7 @@
       <div class="table-wrap" id="projects-table"></div>
     </section>
 
-    <section class="section" id="applications">
+    <section class="section" id="applications" data-view="applications">
       <div class="section-header">
         <h2>Project Applications</h2>
         <span>Partner-facing project submissions</span>
@@ -251,7 +253,7 @@
   </main>
 
   <script>
-    const API_BASE = process.env.API_BASE || "http://localhost:8080";
+    const API_BASE = "http://localhost:8080";
     const token = localStorage.getItem("authToken");
     const role = (localStorage.getItem("userRole") || "").toLowerCase();
     const fullName = localStorage.getItem("userName") || "User";
@@ -270,6 +272,44 @@
 
     function prettyRole(value) {
       return value.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    const VIEW_COPY = {
+      partners: {
+        title: "Industry Partners",
+        context: "Partners can have multiple approved projects and pending project applications.",
+      },
+      projects: {
+        title: "Projects",
+        context: "Approved project records linked to industry partners.",
+      },
+      applications: {
+        title: "Project Applications",
+        context: "Pending partner-submitted applications waiting for review or approval.",
+      },
+    };
+
+    function selectedView() {
+      const view = window.location.hash.replace("#", "");
+      return VIEW_COPY[view] ? view : "all";
+    }
+
+    function applyViewMode() {
+      const view = selectedView();
+      const copy = VIEW_COPY[view];
+
+      document.getElementById("page-heading").textContent = copy ? copy.title : "Partner and Projects View";
+      document.getElementById("view-context").textContent = copy
+        ? copy.context
+        : `${fullName} (${prettyRole(role) || "signed in"}) can see records scoped by the API.`;
+
+      document.querySelectorAll("[data-view]").forEach(section => {
+        section.classList.toggle("hidden", view !== "all" && section.dataset.view !== view);
+      });
+
+      document.querySelectorAll("[data-summary]").forEach(summary => {
+        summary.classList.toggle("hidden", view !== "all" && summary.dataset.summary !== view);
+      });
     }
 
     function status(value) {
@@ -348,6 +388,7 @@
           { label: "Primary contact", render: row => escapeHtml(row.primaryContactName || "") },
           { label: "Email", render: row => escapeHtml(row.primaryContactEmail || "") },
           { label: "Projects", render: row => escapeHtml(row.projectCount) },
+          { label: "Pending apps", render: row => escapeHtml(row.pendingApplicationCount) },
         ], rows);
       } catch (error) {
         document.getElementById("partners-count").textContent = "!";
@@ -394,6 +435,8 @@
       }
     }
 
+    applyViewMode();
+    window.addEventListener("hashchange", applyViewMode);
     void Promise.all([loadPartners(), loadProjects(), loadApplications()]);
   </script>
 </body>
