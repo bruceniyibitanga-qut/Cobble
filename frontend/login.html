@@ -224,10 +224,10 @@
 
   <script>
 
-    const API_BASE = "http://localhost:8080";
+    let API_BASE = "http://localhost:8080";
 
     if(window.location.hostname !== "localhost") {
-      API_BASE = "https://cobble-api.onrender.com";
+      API_BASE = "cobble-staging.up.railway.app";
       console.log("Using production API");
     }
     
