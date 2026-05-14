@@ -7,6 +7,9 @@ using System.Security.Claims;
 
 namespace CobbleAPI.Controllers;
 
+/// <summary>
+/// Organisation directory with partnership and submission metadata plus aggregate counts for projects and pending applications.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -14,11 +17,21 @@ public class OrganisationsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="OrganisationsController"/>.
+    /// </summary>
+    /// <param name="context">Database context.</param>
     public OrganisationsController(ApplicationDbContext context)
     {
         _context = context;
     }
 
+    /// <summary>
+    /// Lists organisations accessible to the caller with optional filters.
+    /// </summary>
+    /// <param name="search">Optional name substring filter.</param>
+    /// <param name="status">Optional <see cref="Organisation.PartnershipStatus"/> value.</param>
+    /// <param name="industryId">Optional industry foreign key.</param>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<OrganisationListItemDto>>> GetOrganisations(
         [FromQuery] string? search,
@@ -72,6 +85,10 @@ public class OrganisationsController : ControllerBase
         return Ok(organisations);
     }
 
+    /// <summary>
+    /// Returns one organisation row when visible to the current user.
+    /// </summary>
+    /// <param name="id">Organisation identifier.</param>
     [HttpGet("{id}")]
     public async Task<ActionResult<OrganisationListItemDto>> GetOrganisation(Guid id)
     {
@@ -107,6 +124,10 @@ public class OrganisationsController : ControllerBase
         return org == null ? NotFound() : Ok(org);
     }
 
+    /// <summary>
+    /// Creates an organisation with <see cref="Organisation.SubmissionStatus"/> defaulted to approved.
+    /// </summary>
+    /// <param name="request">Persisted organisation fields.</param>
     [HttpPost]
     [Authorize(Roles = "admin,course_organiser")]
     public async Task<ActionResult<OrganisationListItemDto>> CreateOrganisation(SaveOrganisationRequest request)
@@ -132,6 +153,11 @@ public class OrganisationsController : ControllerBase
         return CreatedAtAction(nameof(GetOrganisation), new { id = org.Id }, new { id = org.Id });
     }
 
+    /// <summary>
+    /// Updates organisation details within the caller&apos;s visibility scope.
+    /// </summary>
+    /// <param name="id">Organisation identifier.</param>
+    /// <param name="request">Replacement field values.</param>
     [HttpPut("{id}")]
     [Authorize(Roles = "admin,course_organiser")]
     public async Task<IActionResult> UpdateOrganisation(Guid id, SaveOrganisationRequest request)
@@ -154,6 +180,10 @@ public class OrganisationsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Soft-deletes an organisation. <c>admin</c> only.
+    /// </summary>
+    /// <param name="id">Organisation identifier.</param>
     [HttpDelete("{id}")]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> DeleteOrganisation(Guid id)
@@ -170,6 +200,10 @@ public class OrganisationsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Restricts organisations to admin (all), course organiser (approved only), or the partner&apos;s own record.
+    /// </summary>
+    /// <param name="query">Organisations query before filters.</param>
     private IQueryable<Organisation> ApplyOrganisationScope(IQueryable<Organisation> query)
     {
         if (User.IsInRole("admin"))

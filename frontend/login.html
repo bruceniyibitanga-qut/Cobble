@@ -225,6 +225,11 @@
   <script>
 
     const API_BASE = "http://localhost:8080";
+
+    if(window.location.hostname !== "localhost") {
+      API_BASE = "https://cobble-api.onrender.com";
+      console.log("Using production API");
+    }
     
     const form = document.getElementById("login-form");
     const message = document.getElementById("message");

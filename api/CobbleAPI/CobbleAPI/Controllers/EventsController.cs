@@ -7,6 +7,9 @@ using System.Security.Claims;
 
 namespace CobbleAPI.Controllers;
 
+/// <summary>
+/// Scheduled events visible to admins and optionally scoped faculty course organisers.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -14,11 +17,22 @@ public class EventsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="EventsController"/>.
+    /// </summary>
+    /// <param name="context">Database context.</param>
     public EventsController(ApplicationDbContext context)
     {
         _context = context;
     }
 
+    /// <summary>
+    /// Lists events after applying visibility rules and filters.
+    /// </summary>
+    /// <param name="search">Optional name substring.</param>
+    /// <param name="type">Optional <see cref="Event.EventType"/> match.</param>
+    /// <param name="facultyId">Optional host faculty.</param>
+    /// <param name="year">Filters by calendar year of <see cref="Event.EventDate"/>.</param>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<EventListItemDto>>> GetEvents(
         [FromQuery] string? search,
@@ -64,6 +78,10 @@ public class EventsController : ControllerBase
         return Ok(events);
     }
 
+    /// <summary>
+    /// Loads one event visible to the caller.
+    /// </summary>
+    /// <param name="id">Event identifier.</param>
     [HttpGet("{id}")]
     public async Task<ActionResult<EventListItemDto>> GetEvent(Guid id)
     {
@@ -86,6 +104,10 @@ public class EventsController : ControllerBase
         return item == null ? NotFound() : Ok(item);
     }
 
+    /// <summary>
+    /// Creates an event recording audit fields from the JWT subject.
+    /// </summary>
+    /// <param name="request">Persisted calendar item.</param>
     [HttpPost]
     [Authorize(Roles = "admin,course_organiser")]
     public async Task<ActionResult<EventListItemDto>> CreateEvent(SaveEventRequest request)
@@ -112,6 +134,11 @@ public class EventsController : ControllerBase
         return CreatedAtAction(nameof(GetEvent), new { id = item.Id }, new { id = item.Id });
     }
 
+    /// <summary>
+    /// Updates fields on a scoped event.
+    /// </summary>
+    /// <param name="id">Event identifier.</param>
+    /// <param name="request">Replacement field values.</param>
     [HttpPut("{id}")]
     [Authorize(Roles = "admin,course_organiser")]
     public async Task<IActionResult> UpdateEvent(Guid id, SaveEventRequest request)
@@ -135,6 +162,10 @@ public class EventsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Soft-deletes an event. <c>admin</c> only.
+    /// </summary>
+    /// <param name="id">Event identifier.</param>
     [HttpDelete("{id}")]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> DeleteEvent(Guid id)
@@ -152,6 +183,9 @@ public class EventsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Admins see all events; course organisers match their faculty or cross-faculty events (<c>FacultyId</c> null).
+    /// </summary>
     private IQueryable<Event> ApplyEventScope(IQueryable<Event> query)
     {
         if (User.IsInRole("admin"))
@@ -166,6 +200,9 @@ public class EventsController : ControllerBase
         return query;
     }
 
+    /// <summary>
+    /// Parses the current user identifier from JWT <see cref="ClaimTypes.NameIdentifier"/>.
+    /// </summary>
     private Guid? CurrentUserId() =>
         Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ? userId : null;
 }

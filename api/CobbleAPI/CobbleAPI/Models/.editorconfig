@@ -1,0 +1,5 @@
+root = false
+
+# EF entities use class-level summaries; full property XML would mirror the database and add noise.
+[*.cs]
+dotnet_diagnostic.CS1591.severity = none

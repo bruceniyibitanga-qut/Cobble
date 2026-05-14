@@ -4,24 +4,57 @@ using System.Text.RegularExpressions;
 
 namespace CobbleAPI.Data;
 
+/// <summary>
+/// Entity Framework Core context for the Cobble PostgreSQL schema (snake_case columns, soft deletes on many entities).
+/// </summary>
 public class ApplicationDbContext : DbContext
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="ApplicationDbContext"/>.
+    /// </summary>
+    /// <param name="options">Provider and connection options.</param>
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+    /// <summary>Application roles (<c>admin</c>, <c>course_organiser</c>, <c>industry_partner</c>).</summary>
     public DbSet<Role> Roles { get; set; }
+
+    /// <summary>Named permissions for future fine-grained authorization.</summary>
     public DbSet<Permission> Permissions { get; set; }
+
+    /// <summary>Many-to-many join between roles and permissions.</summary>
     public DbSet<RolePermission> RolePermissions { get; set; }
+
+    /// <summary>Faculties hosting projects and events.</summary>
     public DbSet<Faculty> Faculties { get; set; }
+
+    /// <summary>Industry classification for organisations.</summary>
     public DbSet<Industry> Industries { get; set; }
+
+    /// <summary>Login accounts with optional faculty and organisation anchors.</summary>
     public DbSet<User> Users { get; set; }
+
+    /// <summary>Partner organisations, addresses, and workflow status fields.</summary>
     public DbSet<Organisation> Organisations { get; set; }
+
+    /// <summary>People associated with an organisation.</summary>
     public DbSet<Contact> Contacts { get; set; }
+
+    /// <summary>Published capstone projects.</summary>
     public DbSet<Project> Projects { get; set; }
+
+    /// <summary>Partner-submitted proposals prior to project creation.</summary>
     public DbSet<ProjectApplication> ProjectApplications { get; set; }
+
+    /// <summary>Calendar events and info sessions.</summary>
     public DbSet<Event> Events { get; set; }
+
+    /// <summary>RSVP-style links between events and organisations.</summary>
     public DbSet<EventAttendance> EventAttendances { get; set; }
+
+    /// <summary>Append-only change history with JSON snapshots.</summary>
     public DbSet<AuditLog> AuditLog { get; set; }
 
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -140,6 +173,9 @@ public class ApplicationDbContext : DbContext
         }
     }
 
+    /// <summary>
+    /// Converts PascalCase identifiers to snake_case for table and column mapping.
+    /// </summary>
     private static string ToSnakeCase(string name) =>
         Regex.Replace(
             Regex.Replace(name, @"([A-Z]+)([A-Z][a-z])", "$1_$2"),

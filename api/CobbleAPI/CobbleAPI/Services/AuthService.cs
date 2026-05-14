@@ -7,15 +7,23 @@ using System.Security.Cryptography;
 
 namespace CobbleAPI.Services;
 
+/// <summary>
+/// Default implementation of <see cref="IAuthService"/> using PKCS#8 RSA keys from configuration for JWT signing.
+/// </summary>
 public class AuthService : IAuthService
 {
     private readonly IConfiguration _configuration;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AuthService"/>.
+    /// </summary>
+    /// <param name="configuration">Application configuration containing JWT and PEM secrets.</param>
     public AuthService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
 
+    /// <inheritdoc />
     public string GenerateJwtToken(User user)
     {
         var rsa = RSA.Create();
@@ -49,9 +57,11 @@ public class AuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    /// <inheritdoc />
     public string HashPassword(string password) =>
         BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
 
+    /// <inheritdoc />
     public bool VerifyPassword(string password, string hash) =>
         BCrypt.Net.BCrypt.Verify(password, hash);
 }

@@ -7,6 +7,9 @@ using System.Security.Claims;
 
 namespace CobbleAPI.Controllers;
 
+/// <summary>
+/// Industry partner project proposals (applications) before they become <see cref="Project"/> records, with faculty and org scoping.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -14,11 +17,23 @@ public class ProjectApplicationsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ProjectApplicationsController"/>.
+    /// </summary>
+    /// <param name="context">Database context.</param>
     public ProjectApplicationsController(ApplicationDbContext context)
     {
         _context = context;
     }
 
+    /// <summary>
+    /// Lists applications that have not yet resulted in a project (<see cref="ProjectApplication.ResultingProjectId"/> is null), filtered by role.
+    /// </summary>
+    /// <param name="search">Optional proposed title substring.</param>
+    /// <param name="status">Application status; defaults to <c>pending</c> when omitted or blank.</param>
+    /// <param name="organisationId">Optional owning organisation.</param>
+    /// <param name="semester">Optional proposed semester.</param>
+    /// <param name="year">Optional proposed year.</param>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProjectApplicationListItemDto>>> GetProjectApplications(
         [FromQuery] string? search,
@@ -72,6 +87,10 @@ public class ProjectApplicationsController : ControllerBase
         return Ok(applications);
     }
 
+    /// <summary>
+    /// Loads a single application that is visible under the current role.
+    /// </summary>
+    /// <param name="id">Application identifier.</param>
     [HttpGet("{id}")]
     public async Task<ActionResult<ProjectApplicationListItemDto>> GetProjectApplication(Guid id)
     {
@@ -97,6 +116,10 @@ public class ProjectApplicationsController : ControllerBase
         return application == null ? NotFound() : Ok(application);
     }
 
+    /// <summary>
+    /// Submits a new project application as <c>pending</c>. Partners may only target their organisation for writes.
+    /// </summary>
+    /// <param name="request">Proposed project and organisation linkage.</param>
     [HttpPost]
     [Authorize(Roles = "admin,course_organiser,industry_partner")]
     public async Task<ActionResult<ProjectApplicationListItemDto>> CreateProjectApplication(SaveProjectApplicationRequest request)
@@ -127,6 +150,11 @@ public class ProjectApplicationsController : ControllerBase
         return CreatedAtAction(nameof(GetProjectApplication), new { id = application.Id }, new { id = application.Id });
     }
 
+    /// <summary>
+    /// Updates a <c>pending</c> application within the caller&apos;s write scope for organisations.
+    /// </summary>
+    /// <param name="id">Application identifier.</param>
+    /// <param name="request">Replacement field values.</param>
     [HttpPut("{id}")]
     [Authorize(Roles = "admin,course_organiser,industry_partner")]
     public async Task<IActionResult> UpdateProjectApplication(Guid id, SaveProjectApplicationRequest request)
@@ -153,6 +181,10 @@ public class ProjectApplicationsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Soft-deletes an application. Allowed for <c>admin</c> and <c>course_organiser</c>.
+    /// </summary>
+    /// <param name="id">Application identifier.</param>
     [HttpDelete("{id}")]
     [Authorize(Roles = "admin,course_organiser")]
     public async Task<IActionResult> DeleteProjectApplication(Guid id)
@@ -169,6 +201,9 @@ public class ProjectApplicationsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Restricts readable applications using role, faculty, approved organisations, or the partner organisation id claim.
+    /// </summary>
     private IQueryable<ProjectApplication> ApplyApplicationScope(IQueryable<ProjectApplication> query)
     {
         if (User.IsInRole("admin"))
@@ -191,6 +226,9 @@ public class ProjectApplicationsController : ControllerBase
         return query.Where(_ => false);
     }
 
+    /// <summary>
+    /// Organisations writable by the caller when creating or updating applications (partners constrained to own org).
+    /// </summary>
     private IQueryable<Organisation> ApplyOrganisationScopeForWrite(IQueryable<Organisation> query)
     {
         if (User.IsInRole("admin") || User.IsInRole("course_organiser"))

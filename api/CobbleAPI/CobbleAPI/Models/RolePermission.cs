@@ -1,5 +1,6 @@
 namespace CobbleAPI.Models;
 
+/// <summary>Composite key row wiring <see cref="Role"/> to <see cref="Permission"/>.</summary>
 public class RolePermission
 {
     public int RoleId { get; set; }

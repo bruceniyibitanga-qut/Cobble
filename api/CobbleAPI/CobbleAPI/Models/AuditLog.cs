@@ -1,5 +1,8 @@
 namespace CobbleAPI.Models;
 
+/// <summary>
+/// JSON snapshot of mutated rows (<c>old_values</c>/<c>new_values</c>) attributable to authenticated actions.
+/// </summary>
 public class AuditLog
 {
     public long Id { get; set; }

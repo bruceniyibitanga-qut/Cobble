@@ -1,5 +1,8 @@
 namespace CobbleAPI.Models;
 
+/// <summary>
+/// Recruitment or informational calendar entry optionally scoped by <see cref="Faculty"/>.
+/// </summary>
 public class Event
 {
     public Guid Id { get; set; }

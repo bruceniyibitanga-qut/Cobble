@@ -1,5 +1,8 @@
 namespace CobbleAPI.Models;
 
+/// <summary>
+/// Academic organisational unit aligning staff, placements, and events.
+/// </summary>
 public class Faculty
 {
     public int Id { get; set; }

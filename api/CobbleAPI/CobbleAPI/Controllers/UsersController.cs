@@ -8,6 +8,9 @@ using System.Security.Claims;
 
 namespace CobbleAPI.Controllers;
 
+/// <summary>
+/// Admin-only user directory and account maintenance (roles, faculties, organisations, soft delete).
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "admin")]
@@ -16,12 +19,23 @@ public class UsersController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IAuthService _auth;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="UsersController"/>.
+    /// </summary>
+    /// <param name="context">Database context.</param>
+    /// <param name="auth">Password hashing for create and optional password rotations.</param>
     public UsersController(ApplicationDbContext context, IAuthService auth)
     {
         _context = context;
         _auth = auth;
     }
 
+    /// <summary>
+    /// Returns users matching optional filters. Excludes soft-deleted accounts.
+    /// </summary>
+    /// <param name="search">Matches full name or email substring.</param>
+    /// <param name="role">Exact role name (e.g. <c>admin</c>, <c>course_organiser</c>).</param>
+    /// <param name="active">When set, filters by <see cref="User.IsActive"/>.</param>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserListItemDto>>> GetUsers(
         [FromQuery] string? search,
@@ -61,6 +75,10 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
+    /// <summary>
+    /// Returns a single user by id.
+    /// </summary>
+    /// <param name="id">User identifier.</param>
     [HttpGet("{id}")]
     public async Task<ActionResult<UserListItemDto>> GetUser(Guid id)
     {
@@ -85,6 +103,10 @@ public class UsersController : ControllerBase
         return user == null ? NotFound() : Ok(user);
     }
 
+    /// <summary>
+    /// Creates a user with hashed password and optional faculty and organisation linkage.
+    /// </summary>
+    /// <param name="request">Account fields; password is required on creation.</param>
     [HttpPost]
     public async Task<ActionResult<UserListItemDto>> CreateUser(SaveUserRequest request)
     {
@@ -123,6 +145,11 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(GetUser), new { id = user.Id }, new { id = user.Id });
     }
 
+    /// <summary>
+    /// Updates user profile fields and optionally rotates password when non-blank.
+    /// </summary>
+    /// <param name="id">User identifier.</param>
+    /// <param name="request">Replacement profile data.</param>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(Guid id, SaveUserRequest request)
     {
@@ -160,6 +187,10 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Soft-deletes a user unless the target is the current signed-in administrator.
+    /// </summary>
+    /// <param name="id">User identifier.</param>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
@@ -179,6 +210,9 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Validates optional faculty and organisation foreign keys exist (organisation must not be soft-deleted).
+    /// </summary>
     private async Task<bool> ReferencesExist(int? facultyId, Guid? organisationId)
     {
         if (facultyId.HasValue && !await _context.Faculties.AnyAsync(f => f.Id == facultyId.Value))
@@ -190,6 +224,9 @@ public class UsersController : ControllerBase
         return true;
     }
 
+    /// <summary>
+    /// Parses the current user identifier from JWT <see cref="ClaimTypes.NameIdentifier"/>.
+    /// </summary>
     private Guid? CurrentUserId() =>
         Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ? userId : null;
 }

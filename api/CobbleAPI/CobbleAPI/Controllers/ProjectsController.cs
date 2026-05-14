@@ -7,6 +7,9 @@ using System.Security.Claims;
 
 namespace CobbleAPI.Controllers;
 
+/// <summary>
+/// CRUD and search for capstone projects with role-based visibility (faculty, approved orgs, own organisation).
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -14,11 +17,23 @@ public class ProjectsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ProjectsController"/>.
+    /// </summary>
+    /// <param name="context">Database context.</param>
     public ProjectsController(ApplicationDbContext context)
     {
         _context = context;
     }
 
+    /// <summary>
+    /// Returns a filtered list of projects visible to the caller.
+    /// </summary>
+    /// <param name="search">Optional title substring filter.</param>
+    /// <param name="status">Optional exact status match.</param>
+    /// <param name="semester">Optional semester code.</param>
+    /// <param name="year">Optional calendar/teaching year.</param>
+    /// <param name="organisationId">Optional owning organisation identifier.</param>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProjectListItemDto>>> GetProjects(
         [FromQuery] string? search,
@@ -73,6 +88,10 @@ public class ProjectsController : ControllerBase
         return Ok(projects);
     }
 
+    /// <summary>
+    /// Retrieves a single project by identifier when it is in scope for the caller.
+    /// </summary>
+    /// <param name="id">Project identifier.</param>
     [HttpGet("{id}")]
     public async Task<ActionResult<ProjectListItemDto>> GetProject(Guid id)
     {
@@ -99,6 +118,10 @@ public class ProjectsController : ControllerBase
         return project == null ? NotFound() : Ok(project);
     }
 
+    /// <summary>
+    /// Creates a new project. Allowed for <c>admin</c> and <c>course_organiser</c>.
+    /// </summary>
+    /// <param name="request">Persisted project shape.</param>
     [HttpPost]
     [Authorize(Roles = "admin,course_organiser")]
     public async Task<ActionResult<ProjectListItemDto>> CreateProject(SaveProjectRequest request)
@@ -130,6 +153,11 @@ public class ProjectsController : ControllerBase
         return CreatedAtAction(nameof(GetProject), new { id = project.Id }, new { id = project.Id });
     }
 
+    /// <summary>
+    /// Updates an existing scoped project.
+    /// </summary>
+    /// <param name="id">Project identifier.</param>
+    /// <param name="request">Replacement field values.</param>
     [HttpPut("{id}")]
     [Authorize(Roles = "admin,course_organiser")]
     public async Task<IActionResult> UpdateProject(Guid id, SaveProjectRequest request)
@@ -159,6 +187,10 @@ public class ProjectsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Soft-deletes a project. <c>admin</c> only.
+    /// </summary>
+    /// <param name="id">Project identifier.</param>
     [HttpDelete("{id}")]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> DeleteProject(Guid id)
@@ -175,6 +207,11 @@ public class ProjectsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Restricts project queries based on JWT role claims (faculty, organisation, or full access).
+    /// </summary>
+    /// <param name="query">Projects query prior to predicates.</param>
+    /// <returns>The same query with additional filters, or empty for unauthorised roles.</returns>
     private IQueryable<Project> ApplyProjectScope(IQueryable<Project> query)
     {
         if (User.IsInRole("admin"))
