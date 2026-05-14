@@ -521,8 +521,8 @@
     let API_BASE = "http://localhost:8080";
 
     if(window.location.hostname !== "localhost") {
-      API_BASE = "cobble-staging.up.railway.app";
-      console.log("Using production API");
+      API_BASE = "https://cobble-staging.up.railway.app";
+      console.log("Using staging API");
     }
     const token = localStorage.getItem("authToken");
     const role = (localStorage.getItem("userRole") || "").toLowerCase();
