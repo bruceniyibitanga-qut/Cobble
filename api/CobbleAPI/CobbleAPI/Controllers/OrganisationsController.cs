@@ -1,0 +1,223 @@
+using CobbleAPI.Data;
+using CobbleAPI.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+
+namespace CobbleAPI.Controllers;
+
+/// <summary>
+/// Organisation directory with partnership and submission metadata plus aggregate counts for projects and pending applications.
+/// </summary>
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class OrganisationsController : ControllerBase
+{
+    private readonly ApplicationDbContext _context;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="OrganisationsController"/>.
+    /// </summary>
+    /// <param name="context">Database context.</param>
+    public OrganisationsController(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    /// <summary>
+    /// Lists organisations accessible to the caller with optional filters.
+    /// </summary>
+    /// <param name="search">Optional name substring filter.</param>
+    /// <param name="status">Optional <see cref="Organisation.PartnershipStatus"/> value.</param>
+    /// <param name="industryId">Optional industry foreign key.</param>
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<OrganisationListItemDto>>> GetOrganisations(
+        [FromQuery] string? search,
+        [FromQuery] string? status,
+        [FromQuery] int? industryId)
+    {
+        var query = _context.Organisations
+            .AsNoTracking()
+            .Where(o => o.DeletedAt == null);
+
+        query = ApplyOrganisationScope(query);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(o => o.Name.Contains(search));
+
+        if (!string.IsNullOrWhiteSpace(status))
+            query = query.Where(o => o.PartnershipStatus == status);
+
+        if (industryId.HasValue)
+            query = query.Where(o => o.IndustryId == industryId.Value);
+
+        var organisations = await query
+            .OrderBy(o => o.Name)
+            .Select(o => new OrganisationListItemDto(
+                o.Id,
+                o.Name,
+                o.Industry != null ? o.Industry.Name : null,
+                o.IndustryId,
+                o.Email,
+                o.Website,
+                o.Phone,
+                o.PartnershipStatus,
+                o.SubmissionStatus,
+                o.Contacts
+                    .Where(c => c.DeletedAt == null && c.IsPrimary)
+                    .Select(c => c.FirstName + " " + c.LastName)
+                    .FirstOrDefault(),
+                o.Contacts
+                    .Where(c => c.DeletedAt == null && c.IsPrimary)
+                    .Select(c => c.Email)
+                    .FirstOrDefault(),
+                o.Projects.Count(p => p.DeletedAt == null),
+                o.ProjectApplications.Count(a =>
+                    a.DeletedAt == null &&
+                    a.ApplicationStatus == "pending" &&
+                    a.ResultingProjectId == null),
+                o.UpdatedAt
+            ))
+            .ToListAsync();
+
+        return Ok(organisations);
+    }
+
+    /// <summary>
+    /// Returns one organisation row when visible to the current user.
+    /// </summary>
+    /// <param name="id">Organisation identifier.</param>
+    [HttpGet("{id}")]
+    public async Task<ActionResult<OrganisationListItemDto>> GetOrganisation(Guid id)
+    {
+        var org = await ApplyOrganisationScope(_context.Organisations.AsNoTracking())
+            .Where(o => o.DeletedAt == null && o.Id == id)
+            .Select(o => new OrganisationListItemDto(
+                o.Id,
+                o.Name,
+                o.Industry != null ? o.Industry.Name : null,
+                o.IndustryId,
+                o.Email,
+                o.Website,
+                o.Phone,
+                o.PartnershipStatus,
+                o.SubmissionStatus,
+                o.Contacts
+                    .Where(c => c.DeletedAt == null && c.IsPrimary)
+                    .Select(c => c.FirstName + " " + c.LastName)
+                    .FirstOrDefault(),
+                o.Contacts
+                    .Where(c => c.DeletedAt == null && c.IsPrimary)
+                    .Select(c => c.Email)
+                    .FirstOrDefault(),
+                o.Projects.Count(p => p.DeletedAt == null),
+                o.ProjectApplications.Count(a =>
+                    a.DeletedAt == null &&
+                    a.ApplicationStatus == "pending" &&
+                    a.ResultingProjectId == null),
+                o.UpdatedAt
+            ))
+            .FirstOrDefaultAsync();
+
+        return org == null ? NotFound() : Ok(org);
+    }
+
+    /// <summary>
+    /// Creates an organisation with <see cref="Organisation.SubmissionStatus"/> defaulted to approved.
+    /// </summary>
+    /// <param name="request">Persisted organisation fields.</param>
+    [HttpPost]
+    [Authorize(Roles = "admin,course_organiser")]
+    public async Task<ActionResult<OrganisationListItemDto>> CreateOrganisation(SaveOrganisationRequest request)
+    {
+        var org = new Organisation
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name,
+            IndustryId = request.IndustryId,
+            Email = request.Email,
+            Website = request.Website,
+            Phone = request.Phone,
+            PartnershipStatus = request.PartnershipStatus,
+            SubmissionStatus = "approved",
+            Notes = request.Notes,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Organisations.Add(org);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetOrganisation), new { id = org.Id }, new { id = org.Id });
+    }
+
+    /// <summary>
+    /// Updates organisation details within the caller&apos;s visibility scope.
+    /// </summary>
+    /// <param name="id">Organisation identifier.</param>
+    /// <param name="request">Replacement field values.</param>
+    [HttpPut("{id}")]
+    [Authorize(Roles = "admin,course_organiser")]
+    public async Task<IActionResult> UpdateOrganisation(Guid id, SaveOrganisationRequest request)
+    {
+        var org = await ApplyOrganisationScope(_context.Organisations)
+            .FirstOrDefaultAsync(o => o.Id == id && o.DeletedAt == null);
+
+        if (org == null) return NotFound();
+
+        org.Name = request.Name;
+        org.IndustryId = request.IndustryId;
+        org.Email = request.Email;
+        org.Website = request.Website;
+        org.Phone = request.Phone;
+        org.PartnershipStatus = request.PartnershipStatus;
+        org.Notes = request.Notes;
+        org.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Soft-deletes an organisation. <c>admin</c> only.
+    /// </summary>
+    /// <param name="id">Organisation identifier.</param>
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> DeleteOrganisation(Guid id)
+    {
+        var org = await _context.Organisations
+            .FirstOrDefaultAsync(o => o.Id == id && o.DeletedAt == null);
+
+        if (org == null) return NotFound();
+
+        org.DeletedAt = DateTime.UtcNow;
+        org.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Restricts organisations to admin (all), course organiser (approved only), or the partner&apos;s own record.
+    /// </summary>
+    /// <param name="query">Organisations query before filters.</param>
+    private IQueryable<Organisation> ApplyOrganisationScope(IQueryable<Organisation> query)
+    {
+        if (User.IsInRole("admin"))
+            return query;
+
+        if (User.IsInRole("course_organiser"))
+            return query.Where(o => o.SubmissionStatus == "approved");
+
+        if (User.IsInRole("industry_partner") &&
+            Guid.TryParse(User.FindFirstValue("organisation_id"), out var organisationId))
+        {
+            return query.Where(o => o.Id == organisationId);
+        }
+
+        return query.Where(_ => false);
+    }
+}

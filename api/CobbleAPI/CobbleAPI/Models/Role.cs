@@ -1,5 +1,6 @@
 namespace CobbleAPI.Models;
 
+/// <summary>Named RBAC grouping applied to users.</summary>
 public class Role
 {
     public int Id { get; set; }

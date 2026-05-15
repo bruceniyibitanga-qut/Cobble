@@ -1,5 +1,8 @@
 namespace CobbleAPI.Models;
 
+/// <summary>
+/// Industry organisation profile with partnership funnel fields, geography, reviewers, and child collections for contacts and engagements.
+/// </summary>
 public class Organisation
 {
     public Guid Id { get; set; }

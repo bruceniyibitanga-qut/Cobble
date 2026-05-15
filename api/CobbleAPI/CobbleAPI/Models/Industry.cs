@@ -1,5 +1,6 @@
 namespace CobbleAPI.Models;
 
+/// <summary>Industry vertical used to classify organisations.</summary>
 public class Industry
 {
     public int Id { get; set; }

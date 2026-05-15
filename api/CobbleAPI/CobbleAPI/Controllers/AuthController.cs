@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CobbleAPI.Controllers;
 
+/// <summary>
+/// JWT authentication endpoints: login for all users and admin-only registration of staff accounts.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -15,12 +18,22 @@ public class AuthController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IAuthService _auth;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AuthController"/>.
+    /// </summary>
+    /// <param name="context">Database context.</param>
+    /// <param name="auth">Password hashing and token issuance.</param>
     public AuthController(ApplicationDbContext context, IAuthService auth)
     {
         _context = context;
         _auth = auth;
     }
 
+    /// <summary>
+    /// Authenticates a user by email and password and returns a signed JWT plus profile claims.
+    /// </summary>
+    /// <param name="request">Login credentials.</param>
+    /// <returns>An <see cref="AuthResponse"/> with a bearer token when credentials are valid.</returns>
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
@@ -38,7 +51,11 @@ public class AuthController : ControllerBase
         return Ok(BuildAuthResponse(user));
     }
 
-    /// <summary>Creates a new staff or admin account. Admin only.</summary>
+    /// <summary>
+    /// Creates a new staff account (course organiser or industry partner) or admin. Requires the <c>admin</c> role.
+    /// </summary>
+    /// <param name="request">Registration payload including role and optional faculty.</param>
+    /// <returns>An <see cref="AuthResponse"/> with a token for the new user.</returns>
     [HttpPost("register")]
     [Authorize(Roles = "admin")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterUserRequest request)
@@ -70,6 +87,9 @@ public class AuthController : ControllerBase
         return Ok(BuildAuthResponse(user));
     }
 
+    /// <summary>
+    /// Builds the API authentication payload from the persisted user entity and current JWT settings.
+    /// </summary>
     private AuthResponse BuildAuthResponse(User user) => new(
         Token: _auth.GenerateJwtToken(user),
         Email: user.Email,
