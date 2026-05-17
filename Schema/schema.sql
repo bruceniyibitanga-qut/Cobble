@@ -418,7 +418,7 @@ SELECT
 FROM projects_keyed pk
 LEFT JOIN partner_first pf ON pf.organisation_id = pk.organisation_id
 GROUP BY pk.year, pk.semester
-ORDER BY pk.year DESC, pk.intake_key DESC;
+ORDER BY pk.year DESC;
 
 -- Most active partners over the last 3 years.
 CREATE OR REPLACE VIEW v_most_active_partners_3yr AS

@@ -1,5 +1,8 @@
 namespace CobbleAPI.Models;
 
+/// <summary>
+/// Partner RSVP record pairing an organisation with <see cref="Event"/>.
+/// </summary>
 public class EventAttendance
 {
     public Guid Id { get; set; }

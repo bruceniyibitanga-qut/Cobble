@@ -1,5 +1,6 @@
 namespace CobbleAPI.Models;
 
+/// <summary>Declarative privilege identifier (<c>resource:action</c>) joinable through <see cref="RolePermission"/>.</summary>
 public class Permission
 {
     public int Id { get; set; }

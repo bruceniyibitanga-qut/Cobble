@@ -1,5 +1,8 @@
 namespace CobbleAPI.Models;
 
+/// <summary>
+/// Individual associated with an <see cref="Organisation"/>; may be nominated on applications.
+/// </summary>
 public class Contact
 {
     public Guid Id { get; set; }

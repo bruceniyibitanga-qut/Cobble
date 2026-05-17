@@ -1,5 +1,8 @@
 namespace CobbleAPI.Models;
 
+/// <summary>
+/// Signed-in stakeholder with hashed credentials, RBAC linkage, optional faculty and organisation anchors, and soft-delete auditing.
+/// </summary>
 public class User
 {
     public Guid Id { get; set; }

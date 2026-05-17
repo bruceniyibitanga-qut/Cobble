@@ -1,5 +1,8 @@
 namespace CobbleAPI.Models;
 
+/// <summary>
+/// Pre-project proposal submitted by partners; may mature into <see cref="ResultingProject"/> after staff review.
+/// </summary>
 public class ProjectApplication
 {
     public Guid Id { get; set; }

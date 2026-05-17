@@ -1,5 +1,8 @@
 namespace CobbleAPI.Models;
 
+/// <summary>
+/// Canonical capstone placement owned by an <see cref="Organisation"/> and optionally aligned to a <see cref="Faculty"/>.
+/// </summary>
 public class Project
 {
     public Guid Id { get; set; }
