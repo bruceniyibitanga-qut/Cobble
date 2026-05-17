@@ -31,9 +31,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+var connectionString = builder.Configuration.GetConnectionString("Default");
+var mysqlVersion = builder.Configuration["Database:MySqlVersion"];
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
-
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(mysqlVersion!))));
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Asymmetric JWT validation — only the public key is needed here.
