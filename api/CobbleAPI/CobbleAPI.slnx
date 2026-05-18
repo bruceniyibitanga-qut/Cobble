@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="CobbleAPI.Tests/CobbleAPI.Tests.csproj" />
-  <Project Path="CobbleAPI/CobbleAPI.csproj" />
-</Solution>

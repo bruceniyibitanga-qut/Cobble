@@ -226,8 +226,8 @@
 
     let API_BASE = "http://localhost:8080";
 
-    if(window.location.hostname !== "localhost") {
-      API_BASE = "https://cobble-staging.up.railway.app";
+    if(window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      API_BASE = "https://qpf-staging.up.railway.app";
       console.log("Using staging API");
     }
     

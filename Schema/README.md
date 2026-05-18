@@ -1,4 +1,4 @@
-# QUT PS CRM — How to view the schema and the design doc
+# Qut.PartnerForge — How to view the schema and the design doc
 
 You have three files in this folder:
 
@@ -21,7 +21,7 @@ docker compose up -d
 ```
 
 That spins up two containers:
-- **MySQL 8.4** on `localhost:3307` (db: `qut_crm`, user: `qut_crm`, password: `changeme_local_only`)
+- **MySQL 8.4** on `localhost:3307` (db: `qut_partnerforge`, user: `qut_partnerforge`, password: `changeme_local_only`)
 - **Adminer** on http://localhost:5051 (log in directly with the DB credentials)
 
 The schema runs automatically the **first time** the database initialises. If you change `schema.sql` later, wipe and restart:
@@ -34,7 +34,7 @@ docker compose up -d
 ### Verify the schema loaded
 
 ```bash
-docker exec -it qut-crm-db mysql -u qut_crm -pchangeme_local_only qut_crm -e "SHOW TABLES;"
+docker exec -it qpf-schema-db mysql -u qut_partnerforge -pchangeme_local_only qut_partnerforge -e "SHOW TABLES;"
 ```
 
 You should see all tables: `roles`, `permissions`, `role_permissions`, `faculties`, `industries`, `users`, `organisations`, `contacts`, `projects`, `project_applications`, `events`, `event_attendances`, `audit_log`. Run `SHOW FULL TABLES WHERE Table_type = 'VIEW';` to list the analytics views.
@@ -45,9 +45,9 @@ You should see all tables: `roles`, `permissions`, `role_permissions`, `facultie
 2. Fill in the login form:
    - **System:** MySQL
    - **Server:** `mysql`  *(the service name, not `localhost` — they share a Docker network)*
-   - **Username:** `qut_crm`
+   - **Username:** `qut_partnerforge`
    - **Password:** `changeme_local_only`
-   - **Database:** `qut_crm`
+   - **Database:** `qut_partnerforge`
 3. You can now browse tables, run queries, and click any table to view/edit rows. Click "Database schema" near the top for a visual diagram of foreign-key relationships.
 
 ### Connect from a SQL client on your host
@@ -55,7 +55,7 @@ You should see all tables: `roles`, `permissions`, `role_permissions`, `facultie
 Any client (DBeaver, TablePlus, DataGrip, MySQL Workbench, `mysql` CLI) can connect with:
 
 ```
-host=localhost port=3307 database=qut_crm user=qut_crm password=changeme_local_only
+host=localhost port=3307 database=qut_partnerforge user=qut_partnerforge password=changeme_local_only
 ```
 
 ### Stop everything
@@ -97,6 +97,6 @@ That gives you the schema (live, queryable) and the design context (rendered) si
 - `changeme_local_only` is fine for dev, **never** for any deployed environment. Real deployment will use secrets (env vars from your secret manager, or a `.env` file outside source control).
 - The `docker-entrypoint-initdb.d` mechanism only runs on a fresh data volume. To re-apply schema changes during development, either `docker compose down -v` (wipes everything) or re-run the SQL manually:
 ```bash
-  docker exec -i qut-crm-db mysql -u qut_crm -pchangeme_local_only qut_crm < schema.sql
+  docker exec -i qpf-schema-db mysql -u qut_partnerforge -pchangeme_local_only qut_partnerforge < schema.sql
 ```
   (Note: most statements in `schema.sql` aren't idempotent — re-running will error on existing objects. For iterative dev, prefer the `down -v` cycle or migrate to a tool like Flyway or DbUp.)

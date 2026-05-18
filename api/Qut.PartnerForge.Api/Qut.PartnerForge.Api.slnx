@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Qut.PartnerForge.Api.Tests/Qut.PartnerForge.Api.Tests.csproj" />
+  <Project Path="Qut.PartnerForge.Api/Qut.PartnerForge.Api.csproj" />
+</Solution>
