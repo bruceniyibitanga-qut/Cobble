@@ -2,32 +2,32 @@ services:
   # Database (MySQL 8.4 LTS) — schema.sql is applied automatically on first run
   db:
     image: mysql:8.4
-    container_name: cobble-db
+    container_name: qpf-db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: qut_crm
-      MYSQL_USER: qut_crm
+      MYSQL_DATABASE: qut_partnerforge
+      MYSQL_USER: qut_partnerforge
       MYSQL_PASSWORD: ${DB_PASSWORD:-changeme_local_only}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-changeme_local_only_root}
     ports:
       - "3306:3306"
     volumes:
-      - cobble-dbdata:/var/lib/mysql
+      - qpf-dbdata:/var/lib/mysql
       - ./Schema/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "qut_crm", "-p${DB_PASSWORD:-changeme_local_only}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "qut_partnerforge", "-p${DB_PASSWORD:-changeme_local_only}"]
       interval: 5s
       timeout: 5s
       retries: 10
     networks:
-      - cobble-network
+      - qpf-network
 
   # API (ASP.NET Core / C#)
   api:
     build:
-      context: ./api/CobbleAPI
-      dockerfile: CobbleAPI/Dockerfile
-    container_name: cobble-api
+      context: ./api/Qut.PartnerForge.Api
+      dockerfile: Qut.PartnerForge.Api/Dockerfile
+    container_name: qpf-api
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -37,19 +37,19 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Server=db;Port=3306;Database=qut_crm;User=qut_crm;Password=${DB_PASSWORD:-changeme_local_only}
-      - Jwt__Issuer=CobbleAPI
-      - Jwt__Audience=CobbleFrontend
+      - ConnectionStrings__Default=Server=db;Port=3306;Database=qut_partnerforge;User=qut_partnerforge;Password=${DB_PASSWORD:-changeme_local_only}
+      - Jwt__Issuer=Qut.PartnerForge.Api
+      - Jwt__Audience=Qut.PartnerForge.Frontend
       - Jwt__ExpiryInMinutes=60
       # JWT keys are loaded from appsettings.json in dev.
       # In production, override Jwt__PrivateKeyPem and Jwt__PublicKeyPem via environment or Docker secrets.
     networks:
-      - cobble-network
+      - qpf-network
 
   # Adminer — lightweight web UI for browsing the database
   adminer:
     image: adminer:latest
-    container_name: cobble-adminer
+    container_name: qpf-adminer
     restart: unless-stopped
     ports:
       - "5050:8080"
@@ -59,11 +59,11 @@ services:
       db:
         condition: service_healthy
     networks:
-      - cobble-network
+      - qpf-network
 
 volumes:
-  cobble-dbdata:
+  qpf-dbdata:
 
 networks:
-  cobble-network:
+  qpf-network:
     driver: bridge

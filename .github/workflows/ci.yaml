@@ -21,16 +21,16 @@ jobs:
 
       - name: Restore packages
         run: dotnet restore
-        working-directory: api/CobbleAPI
+        working-directory: api/Qut.PartnerForge.Api
 
       - name: Build
         run: dotnet build --no-restore -warnAsError
-        working-directory: api/CobbleAPI
+        working-directory: api/Qut.PartnerForge.Api
 
       - name: Check formatting
         run: dotnet format --verify-no-changes --no-restore
-        working-directory: api/CobbleAPI/CobbleAPI
+        working-directory: api/Qut.PartnerForge.Api/Qut.PartnerForge.Api
 
       - name: Run unit tests
         run: dotnet test --no-build --verbosity normal
-        working-directory: api/CobbleAPI
+        working-directory: api/Qut.PartnerForge.Api

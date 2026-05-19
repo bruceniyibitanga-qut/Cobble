@@ -17,7 +17,7 @@
 | `Services/TenantService.cs` | No longer needed |
 | `Interfaces/ITenantService.cs` | No longer needed |
 
-### New entity models (all in `api/CobbleAPI/CobbleAPI/Models/`)
+### New entity models (all in `api/Qut.PartnerForge.Api/Qut.PartnerForge.Api/Models/`)
 `Role`, `Permission`, `RolePermission`, `Faculty`, `Industry`, `Organisation`, `Contact`, `Project`, `ProjectApplication`, `Event`, `EventAttendance`, `AuditLog`
 
 Each entity maps directly to a table in `schema.sql`. Snake_case column naming is applied automatically in `ApplicationDbContext.OnModelCreating` via a regex helper — no extra NuGet packages required.
@@ -79,6 +79,11 @@ Valid roles for registration: `admin`, `course_organiser`, `industry_partner`
 - **Soft deletes**: All domain entities have a `deleted_at` column. Records are never physically deleted. Query filters for live records will be added per-endpoint in Phase 2.
 - **Audit trail**: `audit_log` table is populated by Postgres triggers defined in `schema.sql`. No application-side audit code is needed.
 - **JWT secret**: The dev secret is committed in `appsettings.json` for local convenience. For any deployed environment, override via the `JWT_SECRET` environment variable.
+
+## Phase 1 part 2 — Database swap & rename
+
+- Migrated PostgreSQL → MySQL 8.4 LTS (Pomelo EF Core provider, schema rewritten, pgAdmin → Adminer)
+- Renamed `CobbleAPI` → `Qut.PartnerForge.Api` (folders, namespace, project files, Docker services, database)
 
 ## What comes next (Phase 2)
 
