@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace CobbleAPI.Data;
 
 /// <summary>
-/// Entity Framework Core context for the Cobble PostgreSQL schema (snake_case columns, soft deletes on many entities).
+/// Entity Framework Core context for the QUT CRM MySQL schema (snake_case columns, soft deletes on many entities).
 /// </summary>
 public class ApplicationDbContext : DbContext
 {
@@ -155,11 +155,11 @@ public class ApplicationDbContext : DbContext
             .WithMany(o => o.EventAttendances)
             .HasForeignKey(ea => ea.OrganisationId);
 
-        // AuditLog — JSONB columns; inet is left as text (Postgres casts on read)
+        // AuditLog — JSON columns for old/new row snapshots
         modelBuilder.Entity<AuditLog>()
-            .Property(a => a.OldValues).HasColumnType("jsonb");
+            .Property(a => a.OldValues).HasColumnType("json");
         modelBuilder.Entity<AuditLog>()
-            .Property(a => a.NewValues).HasColumnType("jsonb");
+            .Property(a => a.NewValues).HasColumnType("json");
 
         // Apply snake_case naming to all tables and columns to match schema.sql
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())

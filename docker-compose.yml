@@ -1,20 +1,21 @@
 services:
-  # Database (PostgreSQL) — schema.sql is applied automatically on first run
+  # Database (MySQL 8.4 LTS) — schema.sql is applied automatically on first run
   db:
-    image: postgres:16-alpine
+    image: mysql:8.4
     container_name: cobble-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: qut_crm
-      POSTGRES_USER: qut_crm
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme_local_only}
+      MYSQL_DATABASE: qut_crm
+      MYSQL_USER: qut_crm
+      MYSQL_PASSWORD: ${DB_PASSWORD:-changeme_local_only}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-changeme_local_only_root}
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - cobble-pgdata:/var/lib/postgresql/data
+      - cobble-dbdata:/var/lib/mysql
       - ./Schema/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U qut_crm -d qut_crm"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "qut_crm", "-p${DB_PASSWORD:-changeme_local_only}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -36,7 +37,7 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Host=db;Port=5432;Database=qut_crm;Username=qut_crm;Password=${DB_PASSWORD:-changeme_local_only}
+      - ConnectionStrings__Default=Server=db;Port=3306;Database=qut_crm;User=qut_crm;Password=${DB_PASSWORD:-changeme_local_only}
       - Jwt__Issuer=CobbleAPI
       - Jwt__Audience=CobbleFrontend
       - Jwt__ExpiryInMinutes=60
@@ -45,19 +46,15 @@ services:
     networks:
       - cobble-network
 
-  # pgAdmin 4 — visual DB explorer and ER diagram tool
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: cobble-pgadmin
+  # Adminer — lightweight web UI for browsing the database
+  adminer:
+    image: adminer:latest
+    container_name: cobble-adminer
     restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@local.dev
-      PGADMIN_DEFAULT_PASSWORD: ${DB_PASSWORD:-changeme_local_only}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
-      - "5050:80"
-    volumes:
-      - cobble-pgadmin-data:/var/lib/pgadmin
+      - "5050:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
     depends_on:
       db:
         condition: service_healthy
@@ -65,8 +62,7 @@ services:
       - cobble-network
 
 volumes:
-  cobble-pgdata:
-  cobble-pgadmin-data:
+  cobble-dbdata:
 
 networks:
   cobble-network:
