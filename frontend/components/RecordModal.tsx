@@ -94,12 +94,14 @@ export default function RecordModal({
               const isRequired =
                 required || (isNew && name === "password");
               const full = inputType === "textarea" ? " full" : "";
+              const inputId = `field-${name}`;
 
               if (inputType === "textarea") {
                 return (
                   <div key={name} className={`form-group${full}`}>
-                    <label>{label}</label>
+                    <label htmlFor={inputId}>{label}</label>
                     <textarea
+                      id={inputId}
                       name={name}
                       defaultValue={String(value)}
                       required={isRequired}
@@ -111,8 +113,9 @@ export default function RecordModal({
               if (inputType === "select" && options) {
                 return (
                   <div key={name} className="form-group">
-                    <label>{label}</label>
+                    <label htmlFor={inputId}>{label}</label>
                     <select
+                      id={inputId}
                       name={name}
                       defaultValue={String(value)}
                       required={isRequired}
@@ -130,8 +133,9 @@ export default function RecordModal({
               if (inputType === "select-org") {
                 return (
                   <div key={name} className="form-group">
-                    <label>{label}</label>
+                    <label htmlFor={inputId}>{label}</label>
                     <select
+                      id={inputId}
                       name={name}
                       defaultValue={String(value)}
                       required={isRequired}
@@ -149,8 +153,9 @@ export default function RecordModal({
               if (inputType === "select-org-empty") {
                 return (
                   <div key={name} className="form-group">
-                    <label>{label}</label>
+                    <label htmlFor={inputId}>{label}</label>
                     <select
+                      id={inputId}
                       name={name}
                       defaultValue={String(value)}
                       required={isRequired}
@@ -168,8 +173,9 @@ export default function RecordModal({
 
               return (
                 <div key={name} className={`form-group${full}`}>
-                  <label>{label}</label>
+                  <label htmlFor={inputId}>{label}</label>
                   <input
+                    id={inputId}
                     name={name}
                     type={inputType}
                     defaultValue={String(value)}
