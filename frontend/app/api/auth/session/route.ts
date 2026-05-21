@@ -49,9 +49,13 @@ export async function GET() {
       "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
     ] as string) ||
     (payload.email as string) ||
+    (payload[
+      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+    ] as string) ||
     "";
 
   const fullName =
+    (payload.full_name as string) ||
     (payload[
       "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
     ] as string) ||
@@ -63,7 +67,10 @@ export async function GET() {
     fullName,
     email,
     role: role.toLowerCase(),
-    facultyId: (payload.facultyId as string) || null,
-    organisationId: (payload.organisationId as string) || null,
+    facultyId: (payload.faculty_id as string) || (payload.facultyId as string) || null,
+    organisationId:
+      (payload.organisation_id as string) ||
+      (payload.organisationId as string) ||
+      null,
   });
 }

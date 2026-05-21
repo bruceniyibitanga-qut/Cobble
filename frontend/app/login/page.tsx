@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import "./login.css";
 
@@ -65,7 +66,13 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-card">
         <div className="brand">
-          <img src="/qut-logo.svg" alt="QUT logo" className="brand-logo" />
+          <Image
+            src="/qut-logo.svg"
+            alt="QUT logo"
+            className="brand-logo"
+            width={48}
+            height={48}
+          />
           <h1>Industry Relations Database</h1>
           <p className="subtitle">Sign in to access the dashboard</p>
         </div>
