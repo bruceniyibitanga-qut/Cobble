@@ -3,6 +3,7 @@
 You have three files in this folder:
 
 - `schema.sql` — the MySQL DDL
+- `migrations/` — one-off SQL patches for existing development/staging databases
 - `schema_design.md` — the design document (with a Mermaid ER diagram)
 - `docker-compose.yml` — runs MySQL + Adminer locally with the schema auto-loaded
 
@@ -29,6 +30,13 @@ The schema runs automatically the **first time** the database initialises. If yo
 ```bash
 docker compose down -v   # -v removes the volume, forcing a re-init
 docker compose up -d
+```
+
+If you want to keep an existing database volume, do not re-run `schema.sql`.
+Run the relevant file in `migrations/` instead. For example, from the repo root:
+
+```bash
+docker exec -i qpf-db mysql -u qut_partnerforge -pchangeme_local_only qut_partnerforge < Schema/migrations/20260521_shailesh_partner_schema.sql
 ```
 
 ### Verify the schema loaded
