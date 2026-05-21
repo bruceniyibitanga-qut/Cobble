@@ -17,6 +17,7 @@ import DataTable, {
   formatDate,
   type Column,
 } from "@/components/DataTable";
+import FilterBuilder from "@/components/FilterBuilder";
 import RecordModal, { type FieldDef } from "@/components/RecordModal";
 import "./platform.css";
 
@@ -51,10 +52,16 @@ const VIEW_COPY: Record<string, { title: string; context: string }> = {
 const FIELD_SETS: Record<string, FieldDef[]> = {
   partner: [
     ["name", "Name", "text", true],
-    ["industryId", "Industry ID", "number", false],
+    ["industryId", "Industry", "select-industry", false],
     ["email", "Email", "email", false],
     ["website", "Website", "text", false],
     ["phone", "Phone", "text", false],
+    ["addressLine1", "Address line 1", "text", false],
+    ["addressLine2", "Address line 2", "text", false],
+    ["city", "City", "text", false],
+    ["state", "State", "text", false],
+    ["postcode", "Postcode", "text", false],
+    ["country", "Country", "text", false],
     [
       "partnershipStatus",
       "Partnership status",
@@ -163,23 +170,14 @@ function PlatformContent() {
   const [applications, setApplications] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [industries, setIndustries] = useState<any[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Filters
-  const [partnersSearch, setPartnersSearch] = useState("");
-  const [partnersStatus, setPartnersStatus] = useState("");
-  const [partnersSubmission, setPartnersSubmission] = useState("");
-  const [projectsSearch, setProjectsSearch] = useState("");
-  const [projectsStatus, setProjectsStatus] = useState("");
-  const [projectsSemester, setProjectsSemester] = useState("");
-  const [projectsYear, setProjectsYear] = useState("");
   const [applicationsSearch, setApplicationsSearch] = useState("");
   const [applicationsStatus, setApplicationsStatus] = useState("pending");
   const [applicationsSemester, setApplicationsSemester] = useState("");
   const [applicationsYear, setApplicationsYear] = useState("");
-  const [eventsSearch, setEventsSearch] = useState("");
-  const [eventsType, setEventsType] = useState("");
-  const [eventsYear, setEventsYear] = useState("");
   const [usersSearch, setUsersSearch] = useState("");
   const [usersRole, setUsersRole] = useState("");
   const [usersActive, setUsersActive] = useState("");
@@ -200,6 +198,7 @@ function PlatformContent() {
         request("/projects"),
         request("/projectapplications"),
         request("/events"),
+        request("/organisations/industries"),
       ];
       if (role === "admin") reqs.push(request("/users"));
 
@@ -208,7 +207,8 @@ function PlatformContent() {
       setProjects(results[1] || []);
       setApplications(results[2] || []);
       setEvents(results[3] || []);
-      setUsers(results[4] || []);
+      setIndustries(results[4] || []);
+      setUsers(results[5] || []);
       setLoadError(null);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Failed to load data");
@@ -219,28 +219,24 @@ function PlatformContent() {
     loadData();
   }, [loadData]);
 
+  const handlePartnerResults = useCallback((data: { items: any[] }) => {
+    setPartners(data.items);
+  }, []);
+
+  const handleProjectResults = useCallback((data: { items: any[] }) => {
+    setProjects(data.items);
+  }, []);
+
+  const handleEventResults = useCallback((data: { items: any[] }) => {
+    setEvents(data.items);
+  }, []);
+
   // Filtered rows
-  const filteredPartners = filterRows(partners, {
-    name: partnersSearch,
-    partnershipStatus: partnersStatus,
-    submissionStatus: partnersSubmission,
-  });
-  const filteredProjects = filterRows(projects, {
-    title: projectsSearch,
-    status: projectsStatus,
-    semester: projectsSemester,
-    year: projectsYear,
-  });
   const filteredApplications = filterRows(applications, {
     proposedTitle: applicationsSearch,
     applicationStatus: applicationsStatus,
     proposedSemester: applicationsSemester,
     proposedYear: applicationsYear,
-  });
-  const filteredEvents = filterRows(events, {
-    name: eventsSearch,
-    eventType: eventsType,
-    eventDate: eventsYear,
   });
   const filteredUsers =
     role === "admin"
@@ -397,13 +393,13 @@ function PlatformContent() {
           {isVisible("partners") && (
             <div className="summary-card">
               <div className="summary-label">Partners</div>
-              <div className="summary-value">{filteredPartners.length}</div>
+              <div className="summary-value">{partners.length}</div>
             </div>
           )}
           {isVisible("projects") && (
             <div className="summary-card">
               <div className="summary-label">Projects</div>
-              <div className="summary-value">{filteredProjects.length}</div>
+              <div className="summary-value">{projects.length}</div>
             </div>
           )}
           {isVisible("applications") && (
@@ -417,7 +413,7 @@ function PlatformContent() {
           {isVisible("events") && (
             <div className="summary-card">
               <div className="summary-label">Events</div>
-              <div className="summary-value">{filteredEvents.length}</div>
+              <div className="summary-value">{events.length}</div>
             </div>
           )}
           {isVisible("users") && role === "admin" && (
@@ -436,32 +432,6 @@ function PlatformContent() {
               <span>Organisations visible to your role</span>
             </div>
             <div className="section-tools">
-              <input
-                type="search"
-                placeholder="Search partners..."
-                value={partnersSearch}
-                onChange={(e) => setPartnersSearch(e.target.value)}
-              />
-              <select
-                value={partnersStatus}
-                onChange={(e) => setPartnersStatus(e.target.value)}
-              >
-                <option value="">All partnership statuses</option>
-                <option value="prospect">Prospect</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="inactive">Inactive</option>
-              </select>
-              <select
-                value={partnersSubmission}
-                onChange={(e) => setPartnersSubmission(e.target.value)}
-              >
-                <option value="">All submission statuses</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-                <option value="archived">Archived</option>
-              </select>
               {canCreate(role, "partner") && (
                 <button
                   className="primary-btn"
@@ -471,10 +441,15 @@ function PlatformContent() {
                 </button>
               )}
             </div>
+            <FilterBuilder
+              entity="organisations"
+              sortBy="name"
+              onResults={handlePartnerResults}
+            />
             {loadError ? (
               <div className="error">Could not load data ({loadError}).</div>
             ) : (
-              <DataTable columns={partnerColumns} rows={filteredPartners} />
+              <DataTable columns={partnerColumns} rows={partners} />
             )}
           </section>
         )}
@@ -487,39 +462,6 @@ function PlatformContent() {
               <span>Approved and active project records</span>
             </div>
             <div className="section-tools">
-              <input
-                type="search"
-                placeholder="Search projects..."
-                value={projectsSearch}
-                onChange={(e) => setProjectsSearch(e.target.value)}
-              />
-              <select
-                value={projectsStatus}
-                onChange={(e) => setProjectsStatus(e.target.value)}
-              >
-                <option value="">All statuses</option>
-                <option value="proposed">Proposed</option>
-                <option value="ongoing">Ongoing</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-              <select
-                value={projectsSemester}
-                onChange={(e) => setProjectsSemester(e.target.value)}
-              >
-                <option value="">All semesters</option>
-                <option value="S1">S1</option>
-                <option value="S2">S2</option>
-                <option value="SS">SS</option>
-              </select>
-              <input
-                type="number"
-                min={2019}
-                max={2100}
-                placeholder="Year"
-                value={projectsYear}
-                onChange={(e) => setProjectsYear(e.target.value)}
-              />
               {canCreate(role, "project") && (
                 <button
                   className="primary-btn"
@@ -529,10 +471,15 @@ function PlatformContent() {
                 </button>
               )}
             </div>
+            <FilterBuilder
+              entity="projects"
+              sortBy="title"
+              onResults={handleProjectResults}
+            />
             {loadError ? (
               <div className="error">Could not load data ({loadError}).</div>
             ) : (
-              <DataTable columns={projectColumns} rows={filteredProjects} />
+              <DataTable columns={projectColumns} rows={projects} />
             )}
           </section>
         )}
@@ -606,30 +553,6 @@ function PlatformContent() {
               </span>
             </div>
             <div className="section-tools">
-              <input
-                type="search"
-                placeholder="Search events..."
-                value={eventsSearch}
-                onChange={(e) => setEventsSearch(e.target.value)}
-              />
-              <select
-                value={eventsType}
-                onChange={(e) => setEventsType(e.target.value)}
-              >
-                <option value="">All event types</option>
-                <option value="showcase">Showcase</option>
-                <option value="expo">Expo</option>
-                <option value="meeting">Meeting</option>
-                <option value="scholar_program">Scholar program</option>
-              </select>
-              <input
-                type="number"
-                min={2019}
-                max={2100}
-                placeholder="Year"
-                value={eventsYear}
-                onChange={(e) => setEventsYear(e.target.value)}
-              />
               {canCreate(role, "event") && (
                 <button
                   className="primary-btn"
@@ -639,10 +562,15 @@ function PlatformContent() {
                 </button>
               )}
             </div>
+            <FilterBuilder
+              entity="events"
+              sortBy="event_date"
+              onResults={handleEventResults}
+            />
             {loadError ? (
               <div className="error">Could not load data ({loadError}).</div>
             ) : (
-              <DataTable columns={eventColumns} rows={filteredEvents} />
+              <DataTable columns={eventColumns} rows={events} />
             )}
           </section>
         )}
@@ -703,6 +631,7 @@ function PlatformContent() {
           fields={FIELD_SETS[modalType]}
           record={modalRecord}
           partners={partners}
+          industries={industries}
           isNew={!modalId}
           onClose={closeModal}
           onSubmit={handleSave}

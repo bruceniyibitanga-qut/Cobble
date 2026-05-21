@@ -1,0 +1,134 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.toggle {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.6rem 0.9rem;
+}
+
+.toggle:hover {
+  background: #f3f4f6;
+}
+
+.toggleActive {
+  background: #e0f2fe;
+  border-color: #38bdf8;
+  color: #075985;
+}
+
+.select,
+.input {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.55rem 0.65rem;
+  min-height: 38px;
+}
+
+.activeCount {
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.panel {
+  background: #f7f7f8;
+  border: 1px solid #d9dde3;
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.row .select,
+.row .input {
+  flex: 1 1 0;
+}
+
+.actions,
+.savedActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.button,
+.dangerButton,
+.removeButton {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+  padding: 0.55rem 0.8rem;
+}
+
+.button:hover:not(:disabled),
+.removeButton:hover:not(:disabled) {
+  background: #eef2f7;
+}
+
+.primaryButton {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.dangerButton {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.dangerButton:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.button:disabled,
+.dangerButton:disabled,
+.removeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.removeButton {
+  flex: 0 0 auto;
+  padding-inline: 0.7rem;
+}
+
+.error {
+  color: #b91c1c;
+  margin-top: 0.75rem;
+}
+
+.savedList {
+  border-top: 1px solid #d9dde3;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+}
+
+.savedItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+}
