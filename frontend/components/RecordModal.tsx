@@ -33,9 +33,11 @@ function defaultValue(name: string): unknown {
     semester: "S1",
     year: new Date().getFullYear(),
     status: "proposed",
+    multipleTeams: "false",
     proposedProjectType: "capstone",
     proposedSemester: "S1",
     proposedYear: new Date().getFullYear(),
+    proposedMultipleTeams: "false",
     eventType: "meeting",
     eventDate: new Date().toISOString().slice(0, 10),
     role: "industry_partner",
@@ -70,6 +72,12 @@ export default function RecordModal({
       data[key] = data[key] || null;
     });
     if (data.isActive !== undefined) data.isActive = data.isActive === "true";
+    if (data.multipleTeams !== undefined) {
+      data.multipleTeams = data.multipleTeams === "true";
+    }
+    if (data.proposedMultipleTeams !== undefined) {
+      data.proposedMultipleTeams = data.proposedMultipleTeams === "true";
+    }
     if (data.password === "") data.password = null;
 
     onSubmit(data);

@@ -47,16 +47,22 @@ public record AuthResponse(
 /// <summary>Projection for organisation directory rows.</summary>
 public record OrganisationListItemDto(
     Guid Id,
+    string? RegistrationId,
     string Name,
+    string? Abn,
     string? Industry,
     int? IndustryId,
     string? Email,
     string? Website,
     string? Phone,
+    string? AddressLine1,
+    string? OrganisationInformation,
     string PartnershipStatus,
     string SubmissionStatus,
     string? PrimaryContactName,
+    string? PrimaryContactPosition,
     string? PrimaryContactEmail,
+    string? PrimaryContactPhone,
     int ProjectCount,
     int PendingApplicationCount,
     DateTime UpdatedAt
@@ -64,11 +70,19 @@ public record OrganisationListItemDto(
 
 /// <summary>Payload for organisation create/update controllers.</summary>
 public record SaveOrganisationRequest(
+    string? RegistrationId,
     string Name,
+    string? Abn,
     int? IndustryId,
     string? Email,
     string? Website,
     string? Phone,
+    string? AddressLine1,
+    string? OrganisationInformation,
+    string? PrimaryContactName,
+    string? PrimaryContactPosition,
+    string? PrimaryContactEmail,
+    string? PrimaryContactPhone,
     string PartnershipStatus,
     string? Notes
 );
@@ -88,6 +102,13 @@ public record ProjectListItemDto(
     string Status,
     DateOnly? StartDate,
     DateOnly? EndDate,
+    bool MultipleTeams,
+    string? DisciplineArea,
+    string? SecondaryItDiscipline,
+    string? ProjectDeliverables,
+    string? ProjectPartnerAgreement,
+    string? StudentProjectAgreement,
+    string? IpAssignmentRationale,
     DateTime UpdatedAt
 );
 
@@ -103,6 +124,13 @@ public record SaveProjectRequest(
     string Status,
     DateOnly? StartDate,
     DateOnly? EndDate,
+    bool MultipleTeams,
+    string? DisciplineArea,
+    string? SecondaryItDiscipline,
+    string? ProjectDeliverables,
+    string? ProjectPartnerAgreement,
+    string? StudentProjectAgreement,
+    string? IpAssignmentRationale,
     string? Notes
 );
 
@@ -119,6 +147,12 @@ public record ProjectApplicationListItemDto(
     string? ProposedSemester,
     int? ProposedYear,
     string? ProposedFaculty,
+    bool ProposedMultipleTeams,
+    string? ProposedDisciplineArea,
+    string? ProposedSecondaryItDiscipline,
+    string? ProposedDeliverables,
+    string? StudentProjectAgreement,
+    string? IpAssignmentRationale,
     string ApplicationStatus,
     DateTime SubmittedAt
 );
@@ -132,7 +166,13 @@ public record SaveProjectApplicationRequest(
     string? ProposedProjectType,
     string? ProposedSemester,
     int? ProposedYear,
-    int? ProposedFacultyId
+    int? ProposedFacultyId,
+    bool ProposedMultipleTeams,
+    string? ProposedDisciplineArea,
+    string? ProposedSecondaryItDiscipline,
+    string? ProposedDeliverables,
+    string? StudentProjectAgreement,
+    string? IpAssignmentRationale
 );
 
 /// <summary>Projection for calendars and attendee counts.</summary>

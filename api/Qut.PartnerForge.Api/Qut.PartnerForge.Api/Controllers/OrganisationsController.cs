@@ -57,12 +57,16 @@ public class OrganisationsController : ControllerBase
             .OrderBy(o => o.Name)
             .Select(o => new OrganisationListItemDto(
                 o.Id,
+                o.RegistrationId,
                 o.Name,
+                o.Abn,
                 o.Industry != null ? o.Industry.Name : null,
                 o.IndustryId,
                 o.Email,
                 o.Website,
                 o.Phone,
+                o.AddressLine1,
+                o.OrganisationInformation,
                 o.PartnershipStatus,
                 o.SubmissionStatus,
                 o.Contacts
@@ -71,7 +75,15 @@ public class OrganisationsController : ControllerBase
                     .FirstOrDefault(),
                 o.Contacts
                     .Where(c => c.DeletedAt == null && c.IsPrimary)
+                    .Select(c => c.JobTitle)
+                    .FirstOrDefault(),
+                o.Contacts
+                    .Where(c => c.DeletedAt == null && c.IsPrimary)
                     .Select(c => c.Email)
+                    .FirstOrDefault(),
+                o.Contacts
+                    .Where(c => c.DeletedAt == null && c.IsPrimary)
+                    .Select(c => c.Phone)
                     .FirstOrDefault(),
                 o.Projects.Count(p => p.DeletedAt == null),
                 o.ProjectApplications.Count(a =>
@@ -96,12 +108,16 @@ public class OrganisationsController : ControllerBase
             .Where(o => o.DeletedAt == null && o.Id == id)
             .Select(o => new OrganisationListItemDto(
                 o.Id,
+                o.RegistrationId,
                 o.Name,
+                o.Abn,
                 o.Industry != null ? o.Industry.Name : null,
                 o.IndustryId,
                 o.Email,
                 o.Website,
                 o.Phone,
+                o.AddressLine1,
+                o.OrganisationInformation,
                 o.PartnershipStatus,
                 o.SubmissionStatus,
                 o.Contacts
@@ -110,7 +126,15 @@ public class OrganisationsController : ControllerBase
                     .FirstOrDefault(),
                 o.Contacts
                     .Where(c => c.DeletedAt == null && c.IsPrimary)
+                    .Select(c => c.JobTitle)
+                    .FirstOrDefault(),
+                o.Contacts
+                    .Where(c => c.DeletedAt == null && c.IsPrimary)
                     .Select(c => c.Email)
+                    .FirstOrDefault(),
+                o.Contacts
+                    .Where(c => c.DeletedAt == null && c.IsPrimary)
+                    .Select(c => c.Phone)
                     .FirstOrDefault(),
                 o.Projects.Count(p => p.DeletedAt == null),
                 o.ProjectApplications.Count(a =>
@@ -135,11 +159,15 @@ public class OrganisationsController : ControllerBase
         var org = new Organisation
         {
             Id = Guid.NewGuid(),
+            RegistrationId = request.RegistrationId,
             Name = request.Name,
+            Abn = request.Abn,
             IndustryId = request.IndustryId,
             Email = request.Email,
             Website = request.Website,
             Phone = request.Phone,
+            AddressLine1 = request.AddressLine1,
+            OrganisationInformation = request.OrganisationInformation,
             PartnershipStatus = request.PartnershipStatus,
             SubmissionStatus = "approved",
             Notes = request.Notes,
@@ -148,6 +176,7 @@ public class OrganisationsController : ControllerBase
         };
 
         _context.Organisations.Add(org);
+        UpsertPrimaryContact(org.Id, request);
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetOrganisation), new { id = org.Id }, new { id = org.Id });
@@ -167,15 +196,20 @@ public class OrganisationsController : ControllerBase
 
         if (org == null) return NotFound();
 
+        org.RegistrationId = request.RegistrationId;
         org.Name = request.Name;
+        org.Abn = request.Abn;
         org.IndustryId = request.IndustryId;
         org.Email = request.Email;
         org.Website = request.Website;
         org.Phone = request.Phone;
+        org.AddressLine1 = request.AddressLine1;
+        org.OrganisationInformation = request.OrganisationInformation;
         org.PartnershipStatus = request.PartnershipStatus;
         org.Notes = request.Notes;
         org.UpdatedAt = DateTime.UtcNow;
 
+        UpsertPrimaryContact(org.Id, request);
         await _context.SaveChangesAsync();
         return NoContent();
     }
@@ -219,5 +253,47 @@ public class OrganisationsController : ControllerBase
         }
 
         return query.Where(_ => false);
+    }
+
+    private void UpsertPrimaryContact(Guid organisationId, SaveOrganisationRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PrimaryContactName) &&
+            string.IsNullOrWhiteSpace(request.PrimaryContactEmail) &&
+            string.IsNullOrWhiteSpace(request.PrimaryContactPhone) &&
+            string.IsNullOrWhiteSpace(request.PrimaryContactPosition))
+        {
+            return;
+        }
+
+        var contact = _context.Contacts
+            .FirstOrDefault(c => c.OrganisationId == organisationId && c.IsPrimary && c.DeletedAt == null);
+        if (contact == null)
+        {
+            contact = new Contact
+            {
+                Id = Guid.NewGuid(),
+                OrganisationId = organisationId,
+                IsPrimary = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Contacts.Add(contact);
+        }
+
+        var (firstName, lastName) = SplitContactName(request.PrimaryContactName);
+        contact.FirstName = firstName;
+        contact.LastName = lastName;
+        contact.JobTitle = request.PrimaryContactPosition;
+        contact.Email = request.PrimaryContactEmail;
+        contact.Phone = request.PrimaryContactPhone;
+        contact.UpdatedAt = DateTime.UtcNow;
+    }
+
+    private static (string FirstName, string LastName) SplitContactName(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return ("Unknown", "Contact");
+
+        var parts = fullName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length == 1 ? (parts[0], "") : (parts[0], parts[1]);
     }
 }

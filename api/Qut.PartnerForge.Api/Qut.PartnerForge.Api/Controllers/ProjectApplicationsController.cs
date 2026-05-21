@@ -79,6 +79,12 @@ public class ProjectApplicationsController : ControllerBase
                 a.ProposedSemester,
                 a.ProposedYear,
                 a.ProposedFaculty != null ? a.ProposedFaculty.Name : null,
+                a.ProposedMultipleTeams,
+                a.ProposedDisciplineArea,
+                a.ProposedSecondaryItDiscipline,
+                a.ProposedDeliverables,
+                a.StudentProjectAgreement,
+                a.IpAssignmentRationale,
                 a.ApplicationStatus,
                 a.SubmittedAt
             ))
@@ -108,6 +114,12 @@ public class ProjectApplicationsController : ControllerBase
                 a.ProposedSemester,
                 a.ProposedYear,
                 a.ProposedFaculty != null ? a.ProposedFaculty.Name : null,
+                a.ProposedMultipleTeams,
+                a.ProposedDisciplineArea,
+                a.ProposedSecondaryItDiscipline,
+                a.ProposedDeliverables,
+                a.StudentProjectAgreement,
+                a.IpAssignmentRationale,
                 a.ApplicationStatus,
                 a.SubmittedAt
             ))
@@ -138,6 +150,12 @@ public class ProjectApplicationsController : ControllerBase
             ProposedSemester = request.ProposedSemester,
             ProposedYear = request.ProposedYear,
             ProposedFacultyId = request.ProposedFacultyId,
+            ProposedMultipleTeams = request.ProposedMultipleTeams,
+            ProposedDisciplineArea = request.ProposedDisciplineArea,
+            ProposedSecondaryItDiscipline = request.ProposedSecondaryItDiscipline,
+            ProposedDeliverables = request.ProposedDeliverables,
+            StudentProjectAgreement = request.StudentProjectAgreement,
+            IpAssignmentRationale = request.IpAssignmentRationale,
             ApplicationStatus = "pending",
             SubmittedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,
@@ -175,6 +193,12 @@ public class ProjectApplicationsController : ControllerBase
         application.ProposedSemester = request.ProposedSemester;
         application.ProposedYear = request.ProposedYear;
         application.ProposedFacultyId = request.ProposedFacultyId;
+        application.ProposedMultipleTeams = request.ProposedMultipleTeams;
+        application.ProposedDisciplineArea = request.ProposedDisciplineArea;
+        application.ProposedSecondaryItDiscipline = request.ProposedSecondaryItDiscipline;
+        application.ProposedDeliverables = request.ProposedDeliverables;
+        application.StudentProjectAgreement = request.StudentProjectAgreement;
+        application.IpAssignmentRationale = request.IpAssignmentRationale;
         application.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();

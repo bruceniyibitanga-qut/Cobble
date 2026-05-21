@@ -14,6 +14,12 @@ public class ProjectApplication
     public string? ProposedSemester { get; set; }
     public int? ProposedYear { get; set; }
     public int? ProposedFacultyId { get; set; }
+    public bool ProposedMultipleTeams { get; set; }
+    public string? ProposedDisciplineArea { get; set; }
+    public string? ProposedSecondaryItDiscipline { get; set; }
+    public string? ProposedDeliverables { get; set; }
+    public string? StudentProjectAgreement { get; set; }
+    public string? IpAssignmentRationale { get; set; }
     public string ApplicationStatus { get; set; } = "pending";
     public Guid? SubmittedBy { get; set; }
     public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
