@@ -11,8 +11,20 @@ export interface FilterItem {
   value: string;
 }
 
+export interface RelatedFilterGroup {
+  entity: string;
+  quantifier: "any" | "none";
+  filters: FilterItem[];
+}
+
+export interface RelationshipDescriptor {
+  entity: string;
+  label: string;
+}
+
 export interface SearchRequest {
   filters: FilterItem[];
+  relatedFilters?: RelatedFilterGroup[];
   sortBy?: string | null;
   sortDirection: "asc" | "desc";
   page: number;
@@ -88,6 +100,14 @@ export async function fetchFilterableFields(
   return apiRequest<FilterableField[]>(`/search/fields/${entity}`);
 }
 
+export async function fetchRelationships(
+  entity: string,
+): Promise<RelationshipDescriptor[]> {
+  return apiRequest<RelationshipDescriptor[]>(
+    `/search/relationships/${entity}`,
+  );
+}
+
 export async function searchEntity<T = Record<string, unknown>>(
   entity: string,
   request: SearchRequest,
@@ -115,10 +135,11 @@ export async function createSavedFilter(
   entity: string,
   name: string,
   filters: FilterItem[],
+  relatedFilters?: RelatedFilterGroup[],
 ): Promise<SavedFilter> {
   return apiRequest<SavedFilter>("/search/saved-filters", {
     method: "POST",
-    body: JSON.stringify({ entity, name, filters }),
+    body: JSON.stringify({ entity, name, filters, relatedFilters }),
   });
 }
 
