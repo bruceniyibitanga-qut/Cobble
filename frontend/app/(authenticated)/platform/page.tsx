@@ -216,6 +216,8 @@ function PlatformContent() {
   }, [role]);
 
   useEffect(() => {
+    // Platform records are loaded from the API after auth state is known.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 

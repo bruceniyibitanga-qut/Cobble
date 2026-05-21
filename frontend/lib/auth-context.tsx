@@ -55,6 +55,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Session hydration is an async external sync point after initial render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSession();
   }, [fetchSession]);
 
