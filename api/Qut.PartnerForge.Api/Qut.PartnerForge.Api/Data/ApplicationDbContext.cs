@@ -54,6 +54,9 @@ public class ApplicationDbContext : DbContext
     /// <summary>Append-only change history with JSON snapshots.</summary>
     public DbSet<AuditLog> AuditLog { get; set; }
 
+    /// <summary>User-owned named filter presets stored as JSON.</summary>
+    public DbSet<SavedFilter> SavedFilters { get; set; }
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -154,6 +157,16 @@ public class ApplicationDbContext : DbContext
             .HasOne(ea => ea.Organisation)
             .WithMany(o => o.EventAttendances)
             .HasForeignKey(ea => ea.OrganisationId);
+
+        // User → SavedFilters
+        modelBuilder.Entity<SavedFilter>()
+            .HasOne(sf => sf.User)
+            .WithMany()
+            .HasForeignKey(sf => sf.UserId);
+
+        // SavedFilter — filters column stored as JSON
+        modelBuilder.Entity<SavedFilter>()
+            .Property(sf => sf.Filters).HasColumnType("json");
 
         // AuditLog — JSON columns for old/new row snapshots
         modelBuilder.Entity<AuditLog>()
