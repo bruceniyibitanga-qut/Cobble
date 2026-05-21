@@ -115,6 +115,8 @@ export default function FilterBuilder<T = Record<string, unknown>>({
   const [loading, setLoading] = useState(false);
   const [initialising, setInitialising] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saveMode, setSaveMode] = useState(false);
+  const [saveName, setSaveName] = useState("");
 
   const activeFilters = useMemo(() => toValidFilters(rows), [rows]);
   const activeRelated = useMemo(
@@ -125,6 +127,7 @@ export default function FilterBuilder<T = Record<string, unknown>>({
     (sum, g) => sum + g.filters.length,
     0,
   );
+  const totalActive = activeFilters.length + totalRelatedConditions;
 
   const selectedSavedFilter = savedFilters.find(
     (filter) => filter.id === selectedSavedFilterId,
@@ -245,7 +248,10 @@ export default function FilterBuilder<T = Record<string, unknown>>({
     );
   }
 
-  async function handleRelatedEntityChange(groupId: string, newEntity: string) {
+  async function handleRelatedEntityChange(
+    groupId: string,
+    newEntity: string,
+  ) {
     updateRelatedGroup(groupId, {
       entity: newEntity,
       rows: [],
@@ -319,13 +325,12 @@ export default function FilterBuilder<T = Record<string, unknown>>({
     await runSearch([], [], 1);
   }
 
-  async function handleSave() {
+  async function handleSaveConfirm() {
+    const trimmed = saveName.trim();
+    if (!trimmed) return;
+
     const filters = activeFilters;
     const related = toRelatedFilterGroups(relatedGroups);
-    if (filters.length === 0 && related.length === 0) return;
-
-    const name = window.prompt("Name this filter set");
-    if (!name?.trim()) return;
 
     setLoading(true);
     setError(null);
@@ -333,12 +338,14 @@ export default function FilterBuilder<T = Record<string, unknown>>({
     try {
       const saved = await createSavedFilter(
         entity,
-        name.trim(),
+        trimmed,
         filters,
         related.length > 0 ? related : undefined,
       );
       await refreshSavedFilters();
       setSelectedSavedFilterId(saved.id);
+      setSaveMode(false);
+      setSaveName("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save filter.");
     } finally {
@@ -368,14 +375,13 @@ export default function FilterBuilder<T = Record<string, unknown>>({
 
       setRows(toRows(directFilters));
 
-      // Restore related groups with their fields
       const restoredGroups: RelatedGroup[] = [];
       for (const rg of related) {
         let relatedFields: FilterableField[] = [];
         try {
           relatedFields = await fetchFilterableFields(rg.entity);
         } catch {
-          // Field fetch can fail silently; group will show without field metadata
+          /* field fetch can fail silently */
         }
         restoredGroups.push({
           id: crypto.randomUUID(),
@@ -499,17 +505,22 @@ export default function FilterBuilder<T = Record<string, unknown>>({
 
   return (
     <section>
+      {/* ── Toolbar ── */}
       <div className={styles.toolbar}>
         <button
           type="button"
-          className={`${styles.toggle} ${
-            activeFilters.length > 0 || totalRelatedConditions > 0
-              ? styles.toggleActive
-              : ""
-          }`}
-          onClick={() => setOpen((value) => !value)}
+          className={`${styles.toggle} ${totalActive > 0 ? styles.toggleActive : ""}`}
+          onClick={() => setOpen((v) => !v)}
         >
-          Filters {open ? "\u25B2" : "\u25BC"}
+          Filters
+          {totalActive > 0 && (
+            <span className={styles.badge}>{totalActive}</span>
+          )}
+          <span
+            className={`${styles.chevron} ${open ? styles.chevronOpen : ""}`}
+          >
+            &#9662;
+          </span>
         </button>
 
         {savedFilters.length > 0 && (
@@ -517,7 +528,7 @@ export default function FilterBuilder<T = Record<string, unknown>>({
             <select
               className={styles.select}
               value={selectedSavedFilterId}
-              onChange={(event) => handleSavedFilterSelect(event.target.value)}
+              onChange={(e) => handleSavedFilterSelect(e.target.value)}
               disabled={loading}
             >
               <option value="">Saved filters</option>
@@ -541,16 +552,55 @@ export default function FilterBuilder<T = Record<string, unknown>>({
           </div>
         )}
 
-        <span className={styles.activeCount}>
-          {activeFilters.length} active filter(s)
-          {totalRelatedConditions > 0 &&
-            `, ${totalRelatedConditions} related condition(s)`}
-        </span>
+        {totalActive > 0 && (
+          <span className={styles.activeCount}>
+            {activeFilters.length > 0 &&
+              `${activeFilters.length} filter${activeFilters.length !== 1 ? "s" : ""}`}
+            {activeFilters.length > 0 && totalRelatedConditions > 0 && ", "}
+            {totalRelatedConditions > 0 &&
+              `${totalRelatedConditions} related condition${totalRelatedConditions !== 1 ? "s" : ""}`}
+          </span>
+        )}
       </div>
 
+      {/* ── Quick-apply saved filter pills (always visible) ── */}
+      {savedFilters.length > 0 && (
+        <div className={styles.quickFilters}>
+          <span className={styles.quickFiltersLabel}>Quick filters:</span>
+          {savedFilters.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              className={`${styles.quickFilterPill} ${
+                selectedSavedFilterId === filter.id
+                  ? styles.quickFilterPillActive
+                  : ""
+              }`}
+              onClick={() => handleSavedFilterSelect(filter.id)}
+              disabled={loading}
+            >
+              {filter.name}
+            </button>
+          ))}
+          {selectedSavedFilterId && (
+            <button
+              type="button"
+              className={styles.quickFilterClear}
+              onClick={handleClear}
+              disabled={loading}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── Expanded panel ── */}
       {open && (
         <div className={styles.panel}>
-          {/* ── Direct filters ── */}
+          {/* Direct filters */}
+          <span className={styles.sectionLabel}>Conditions</span>
+
           {rows.map((row) =>
             renderFilterRow(
               row,
@@ -564,17 +614,23 @@ export default function FilterBuilder<T = Record<string, unknown>>({
             ),
           )}
 
-          {/* ── Related condition groups ── */}
+          {rows.length === 0 && (
+            <div className={styles.emptyHint}>
+              No filters applied. Click &quot;+ Add filter&quot; to start.
+            </div>
+          )}
+
+          {/* Related condition groups */}
           {relatedGroups.length > 0 && (
             <div className={styles.relatedSection}>
               <span className={styles.relatedHeading}>
-                Related conditions
+                Cross-table conditions
               </span>
 
               {relatedGroups.map((group) => (
                 <div className={styles.relatedGroup} key={group.id}>
                   <div className={styles.relatedGroupHeader}>
-                    <span>Where</span>
+                    <span className={styles.relatedGroupLabel}>Where</span>
                     <select
                       className={styles.select}
                       value={group.quantifier}
@@ -584,8 +640,8 @@ export default function FilterBuilder<T = Record<string, unknown>>({
                         })
                       }
                     >
-                      <option value="any">any</option>
-                      <option value="none">none</option>
+                      <option value="any">at least one</option>
+                      <option value="none">no</option>
                     </select>
                     <span>related</span>
                     <select
@@ -602,7 +658,7 @@ export default function FilterBuilder<T = Record<string, unknown>>({
                         </option>
                       ))}
                     </select>
-                    <span>match:</span>
+                    <span>matches:</span>
                     <button
                       type="button"
                       className={styles.removeButton}
@@ -614,7 +670,7 @@ export default function FilterBuilder<T = Record<string, unknown>>({
                   </div>
 
                   {group.fieldsLoading && (
-                    <div className={styles.relatedGroupBody}>Loading fields...</div>
+                    <div className={styles.loadingText}>Loading fields...</div>
                   )}
 
                   {!group.fieldsLoading && group.entity && (
@@ -637,7 +693,7 @@ export default function FilterBuilder<T = Record<string, unknown>>({
 
                       <button
                         type="button"
-                        className={styles.button}
+                        className={`${styles.button} ${styles.subtleButton}`}
                         onClick={() => addRelatedRow(group.id)}
                       >
                         + Add condition
@@ -649,11 +705,11 @@ export default function FilterBuilder<T = Record<string, unknown>>({
             </div>
           )}
 
-          {/* ── Action buttons ── */}
+          {/* Action buttons */}
           <div className={styles.actions}>
             <button
               type="button"
-              className={styles.button}
+              className={`${styles.button} ${styles.outlineButton}`}
               onClick={() =>
                 setRows((current) => [...current, createEmptyRow()])
               }
@@ -663,20 +719,15 @@ export default function FilterBuilder<T = Record<string, unknown>>({
             {relationships.length > 0 && (
               <button
                 type="button"
-                className={styles.button}
+                className={`${styles.button} ${styles.outlineButton}`}
                 onClick={addRelatedGroup}
               >
-                + Add related table
+                + Related table
               </button>
             )}
-            <button
-              type="button"
-              className={`${styles.button} ${styles.primaryButton}`}
-              onClick={handleApply}
-              disabled={loading || initialising}
-            >
-              {loading ? "Searching..." : "Apply"}
-            </button>
+
+            <span style={{ flex: 1 }} />
+
             <button
               type="button"
               className={styles.button}
@@ -685,28 +736,78 @@ export default function FilterBuilder<T = Record<string, unknown>>({
             >
               Clear
             </button>
-            {(rows.length > 0 || relatedGroups.length > 0) && (
+            <button
+              type="button"
+              className={`${styles.button} ${styles.primaryButton}`}
+              onClick={handleApply}
+              disabled={loading || initialising}
+            >
+              {loading ? "Searching..." : "Apply filters"}
+            </button>
+          </div>
+
+          {/* ── Inline save form ── */}
+          <div className={styles.saveBar}>
+            {!saveMode ? (
               <button
                 type="button"
-                className={styles.button}
-                onClick={handleSave}
+                className={styles.saveButton}
+                onClick={() => setSaveMode(true)}
                 disabled={
                   loading ||
                   (activeFilters.length === 0 && totalRelatedConditions === 0)
                 }
               >
-                Save filter
+                Save current filters
               </button>
+            ) : (
+              <div className={styles.saveForm}>
+                <input
+                  className={styles.input}
+                  type="text"
+                  placeholder="Filter preset name"
+                  value={saveName}
+                  onChange={(e) => setSaveName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveConfirm();
+                    if (e.key === "Escape") {
+                      setSaveMode(false);
+                      setSaveName("");
+                    }
+                  }}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className={`${styles.button} ${styles.primaryButton}`}
+                  onClick={handleSaveConfirm}
+                  disabled={loading || !saveName.trim()}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className={styles.button}
+                  onClick={() => {
+                    setSaveMode(false);
+                    setSaveName("");
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             )}
           </div>
 
+          {/* Saved filters list */}
           {savedFilters.length > 0 && (
             <div className={styles.savedList}>
+              <div className={styles.savedListLabel}>Saved presets</div>
               {savedFilters.map((filter) => (
                 <div className={styles.savedItem} key={filter.id}>
                   <button
                     type="button"
-                    className={styles.button}
+                    className={styles.savedItemName}
                     onClick={() => handleSavedFilterSelect(filter.id)}
                     disabled={loading}
                   >
@@ -714,7 +815,7 @@ export default function FilterBuilder<T = Record<string, unknown>>({
                   </button>
                   <button
                     type="button"
-                    className={styles.dangerButton}
+                    className={styles.savedItemDelete}
                     onClick={() => handleDeleteSavedFilter(filter.id)}
                     disabled={loading}
                     aria-label={`Delete ${filter.name}`}
