@@ -15,12 +15,18 @@ interface Organisation {
   name: string;
 }
 
+interface Industry {
+  id: number;
+  name: string;
+}
+
 interface RecordModalProps {
   open: boolean;
   title: string;
   fields: FieldDef[];
   record: Record<string, unknown>;
   partners: Organisation[];
+  industries?: Industry[];
   isNew: boolean;
   onClose: () => void;
   onSubmit: (data: Record<string, unknown>) => void;
@@ -52,6 +58,7 @@ export default function RecordModal({
   fields,
   record,
   partners,
+  industries = [],
   isNew,
   onClose,
   onSubmit,
@@ -164,6 +171,27 @@ export default function RecordModal({
                       {partners.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              }
+
+              if (inputType === "select-industry") {
+                return (
+                  <div key={name} className="form-group">
+                    <label htmlFor={inputId}>{label}</label>
+                    <select
+                      id={inputId}
+                      name={name}
+                      defaultValue={String(value)}
+                      required={isRequired}
+                    >
+                      <option value="">Unspecified</option>
+                      {industries.map((industry) => (
+                        <option key={industry.id} value={industry.id}>
+                          {industry.name}
                         </option>
                       ))}
                     </select>

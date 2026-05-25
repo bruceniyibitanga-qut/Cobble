@@ -27,6 +27,21 @@ public class OrganisationsController : ControllerBase
     }
 
     /// <summary>
+    /// Lists industry lookup values for organisation forms.
+    /// </summary>
+    [HttpGet("industries")]
+    public async Task<ActionResult<IEnumerable<object>>> GetIndustries()
+    {
+        var industries = await _context.Industries
+            .AsNoTracking()
+            .OrderBy(i => i.Name)
+            .Select(i => new { i.Id, i.Name })
+            .ToListAsync();
+
+        return Ok(industries);
+    }
+
+    /// <summary>
     /// Lists organisations accessible to the caller with optional filters.
     /// </summary>
     /// <param name="search">Optional name substring filter.</param>
@@ -66,6 +81,11 @@ public class OrganisationsController : ControllerBase
                 o.Website,
                 o.Phone,
                 o.AddressLine1,
+                o.AddressLine2,
+                o.City,
+                o.State,
+                o.Postcode,
+                o.Country,
                 o.OrganisationInformation,
                 o.PartnershipStatus,
                 o.SubmissionStatus,
@@ -117,6 +137,11 @@ public class OrganisationsController : ControllerBase
                 o.Website,
                 o.Phone,
                 o.AddressLine1,
+                o.AddressLine2,
+                o.City,
+                o.State,
+                o.Postcode,
+                o.Country,
                 o.OrganisationInformation,
                 o.PartnershipStatus,
                 o.SubmissionStatus,
@@ -167,6 +192,11 @@ public class OrganisationsController : ControllerBase
             Website = request.Website,
             Phone = request.Phone,
             AddressLine1 = request.AddressLine1,
+            AddressLine2 = request.AddressLine2,
+            City = request.City,
+            State = request.State,
+            Postcode = request.Postcode,
+            Country = string.IsNullOrWhiteSpace(request.Country) ? "Australia" : request.Country,
             OrganisationInformation = request.OrganisationInformation,
             PartnershipStatus = request.PartnershipStatus,
             SubmissionStatus = "approved",
@@ -204,6 +234,11 @@ public class OrganisationsController : ControllerBase
         org.Website = request.Website;
         org.Phone = request.Phone;
         org.AddressLine1 = request.AddressLine1;
+        org.AddressLine2 = request.AddressLine2;
+        org.City = request.City;
+        org.State = request.State;
+        org.Postcode = request.Postcode;
+        org.Country = string.IsNullOrWhiteSpace(request.Country) ? "Australia" : request.Country;
         org.OrganisationInformation = request.OrganisationInformation;
         org.PartnershipStatus = request.PartnershipStatus;
         org.Notes = request.Notes;

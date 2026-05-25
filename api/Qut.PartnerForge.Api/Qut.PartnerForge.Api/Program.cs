@@ -36,6 +36,7 @@ var mysqlVersion = builder.Configuration["Database:MySqlVersion"];
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(mysqlVersion!))));
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<IFilterFieldService, FilterFieldService>();
 
 // Asymmetric JWT validation — only the public key is needed here.
 // Tokens are signed with the private key (in AuthService) so even if the

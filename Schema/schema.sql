@@ -376,7 +376,25 @@ CREATE UNIQUE INDEX idx_attendance_unique ON event_attendances (event_id, organi
 
 
 -- =============================================================================
--- 8. AUDIT LOG
+-- 8. SAVED FILTERS  (user-owned search presets)
+-- =============================================================================
+
+CREATE TABLE saved_filters (
+    id                CHAR(36) PRIMARY KEY,
+    user_id           CHAR(36) NOT NULL,
+    entity            VARCHAR(100) NOT NULL,
+    name              VARCHAR(255) NOT NULL,
+    filters           JSON NOT NULL,
+    created_at        DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+
+    FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE INDEX idx_saved_filters_user_entity ON saved_filters (user_id, entity);
+
+
+-- =============================================================================
+-- 9. AUDIT LOG
 -- =============================================================================
 
 CREATE TABLE audit_log (
@@ -401,7 +419,7 @@ CREATE INDEX idx_audit_user    ON audit_log (changed_by);
 
 
 -- =============================================================================
--- 9. TRIGGERS — auto-update updated_at on every row update
+-- 10. TRIGGERS — auto-update updated_at on every row update
 -- =============================================================================
 
 -- The Postgres version of this schema used a trigger function (set_updated_at)
@@ -411,7 +429,7 @@ CREATE INDEX idx_audit_user    ON audit_log (changed_by);
 
 
 -- =============================================================================
--- 10. ANALYTICS VIEWS
+-- 11. ANALYTICS VIEWS
 -- =============================================================================
 
 -- Per-organisation rollup: total projects, first/last engagement, events attended.
