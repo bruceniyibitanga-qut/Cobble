@@ -1,32 +1,33 @@
 services:
-  # Database (PostgreSQL) — schema.sql is applied automatically on first run
+  # Database (MySQL 8.4 LTS) — schema.sql is applied automatically on first run
   db:
-    image: postgres:16-alpine
-    container_name: cobble-db
+    image: mysql:8.4
+    container_name: qpf-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: qut_crm
-      POSTGRES_USER: qut_crm
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme_local_only}
+      MYSQL_DATABASE: qut_partnerforge
+      MYSQL_USER: qut_partnerforge
+      MYSQL_PASSWORD: ${DB_PASSWORD:-changeme_local_only}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-changeme_local_only_root}
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - cobble-pgdata:/var/lib/postgresql/data
+      - qpf-dbdata:/var/lib/mysql
       - ./Schema/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U qut_crm -d qut_crm"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "qut_partnerforge", "-p${DB_PASSWORD:-changeme_local_only}"]
       interval: 5s
       timeout: 5s
       retries: 10
     networks:
-      - cobble-network
+      - qpf-network
 
   # API (ASP.NET Core / C#)
   api:
     build:
-      context: ./api/CobbleAPI
-      dockerfile: CobbleAPI/Dockerfile
-    container_name: cobble-api
+      context: ./api/Qut.PartnerForge.Api
+      dockerfile: Qut.PartnerForge.Api/Dockerfile
+    container_name: qpf-api
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -36,38 +37,33 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Host=db;Port=5432;Database=qut_crm;Username=qut_crm;Password=${DB_PASSWORD:-changeme_local_only}
-      - Jwt__Issuer=CobbleAPI
-      - Jwt__Audience=CobbleFrontend
+      - ConnectionStrings__Default=Server=db;Port=3306;Database=qut_partnerforge;User=qut_partnerforge;Password=${DB_PASSWORD:-changeme_local_only}
+      - Jwt__Issuer=Qut.PartnerForge.Api
+      - Jwt__Audience=Qut.PartnerForge.Frontend
       - Jwt__ExpiryInMinutes=60
       # JWT keys are loaded from appsettings.json in dev.
       # In production, override Jwt__PrivateKeyPem and Jwt__PublicKeyPem via environment or Docker secrets.
     networks:
-      - cobble-network
+      - qpf-network
 
-  # pgAdmin 4 — visual DB explorer and ER diagram tool
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: cobble-pgadmin
+  # Adminer — lightweight web UI for browsing the database
+  adminer:
+    image: adminer:latest
+    container_name: qpf-adminer
     restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@local.dev
-      PGADMIN_DEFAULT_PASSWORD: ${DB_PASSWORD:-changeme_local_only}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
-      - "5050:80"
-    volumes:
-      - cobble-pgadmin-data:/var/lib/pgadmin
+      - "5050:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - cobble-network
+      - qpf-network
 
 volumes:
-  cobble-pgdata:
-  cobble-pgadmin-data:
+  qpf-dbdata:
 
 networks:
-  cobble-network:
+  qpf-network:
     driver: bridge

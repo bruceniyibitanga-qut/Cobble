@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Platform View - QUT Industry Relations Database</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f3f4f6;
+      min-height: 100vh;
+      color: #111827;
+    }
+
+    header {
+      background: #002C5F;
+      color: white;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .header-logo { width: 36px; height: 36px; filter: brightness(0) invert(1); }
+    .header-title { font-size: 16px; font-weight: 600; }
+    .header-subtitle { font-size: 12px; opacity: 0.75; margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .top-nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.82;
+    }
+
+    .top-nav a:hover,
+    .top-nav a.active { opacity: 1; }
+
+    .nav-link,
+    .logout-btn {
+      background: rgba(255,255,255,0.12);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .nav-link:hover,
+    .logout-btn:hover { background: rgba(255,255,255,0.22); }
+
+    .container { max-width: 1180px; margin: 0 auto; padding: 28px; }
+
+    .page-title {
+      margin-bottom: 22px;
+    }
+
+    .page-title h1 {
+      font-size: 24px;
+      color: #002C5F;
+      margin-bottom: 5px;
+    }
+
+    .page-title p {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .summary {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .hidden { display: none; }
+
+    .summary-label {
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-value {
+      color: #111827;
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .section {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 22px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .section-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .section-header h2 {
+      font-size: 17px;
+      color: #111827;
+    }
+
+    .section-header span {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .section-tools {
+      padding: 14px 18px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .section-tools input,
+    .section-tools select {
+      padding: 9px 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 13px;
+      background: white;
+    }
+
+    .section-tools input { min-width: 220px; flex: 1; }
+
+    .action-btn,
+    .primary-btn {
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .primary-btn {
+      background: #002C5F;
+      color: white;
+      padding: 9px 13px;
+      margin-left: auto;
+    }
+
+    .action-btn {
+      padding: 5px 9px;
+      margin-right: 5px;
+    }
+
+    .edit-btn { background: #eff6ff; color: #1d4ed8; }
+    .delete-btn { background: #fef2f2; color: #991b1b; }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th,
+    td {
+      padding: 11px 14px;
+      text-align: left;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #475569;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 700;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .status {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-approved,
+    .status-active,
+    .status-ongoing { background: #dcfce7; color: #166534; }
+
+    .status-pending,
+    .status-proposed,
+    .status-prospect { background: #fef3c7; color: #92400e; }
+
+    .status-rejected,
+    .status-cancelled,
+    .status-inactive { background: #fee2e2; color: #991b1b; }
+
+    .status-completed { background: #dbeafe; color: #1e40af; }
+
+    .empty,
+    .error {
+      padding: 18px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .error {
+      color: #991b1b;
+      background: #fef2f2;
+      border-top: 1px solid #fecaca;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 8px;
+      width: min(560px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.24);
+      padding: 22px;
+    }
+
+    .modal h2 {
+      font-size: 18px;
+      color: #002C5F;
+      margin-bottom: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 14px;
+    }
+
+    .form-group textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .secondary-btn {
+      background: #f3f4f6;
+      color: #374151;
+      padding: 9px 13px;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <img src="qut-logo.svg" alt="QUT logo" class="header-logo" />
+      <div>
+        <div class="header-title">Industry Relations Database</div>
+        <div class="header-subtitle">Platform view</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <nav class="top-nav" aria-label="Primary">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="platform-view.html#partners" data-nav-view="partners">Organisations</a>
+        <a href="platform-view.html#projects" data-nav-view="projects">Projects</a>
+        <a href="platform-view.html#events" data-nav-view="events">Events</a>
+        <a href="platform-view.html#applications" data-nav-view="applications">Applications</a>
+        <a href="platform-view.html#users" data-nav-view="users" data-admin-nav>User Management</a>
+      </nav>
+      <button class="logout-btn" id="logout-btn">Sign out</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-title">
+      <h1 id="page-heading">Partner and Projects View</h1>
+      <p id="view-context">Loading organiser-facing and partner-facing data...</p>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary" data-summary="partners">
+        <div class="summary-label">Partners</div>
+        <div class="summary-value" id="partners-count">-</div>
+      </div>
+      <div class="summary" data-summary="projects">
+        <div class="summary-label">Projects</div>
+        <div class="summary-value" id="projects-count">-</div>
+      </div>
+      <div class="summary" data-summary="applications">
+        <div class="summary-label">Applications</div>
+        <div class="summary-value" id="applications-count">-</div>
+      </div>
+      <div class="summary" data-summary="events">
+        <div class="summary-label">Events</div>
+        <div class="summary-value" id="events-count">-</div>
+      </div>
+      <div class="summary" data-summary="users" data-admin-only>
+        <div class="summary-label">Users</div>
+        <div class="summary-value" id="users-count">-</div>
+      </div>
+    </div>
+
+    <section class="section" id="partners" data-view="partners">
+      <div class="section-header">
+        <h2>Industry Partners</h2>
+        <span>Organisations visible to your role</span>
+      </div>
+      <div class="section-tools">
+        <input id="partners-search" type="search" placeholder="Search partners..." />
+        <select id="partners-status">
+          <option value="">All partnership statuses</option>
+          <option value="prospect">Prospect</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <select id="partners-submission">
+          <option value="">All submission statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="archived">Archived</option>
+        </select>
+        <button class="primary-btn" data-action="new-partner" data-create-type="partner">Add Partner</button>
+      </div>
+      <div class="table-wrap" id="partners-table"></div>
+    </section>
+
+    <section class="section" id="projects" data-view="projects">
+      <div class="section-header">
+        <h2>Projects</h2>
+        <span>Approved and active project records</span>
+      </div>
+      <div class="section-tools">
+        <input id="projects-search" type="search" placeholder="Search projects..." />
+        <select id="projects-status">
+          <option value="">All statuses</option>
+          <option value="proposed">Proposed</option>
+          <option value="ongoing">Ongoing</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <select id="projects-semester">
+          <option value="">All semesters</option>
+          <option value="S1">S1</option>
+          <option value="S2">S2</option>
+          <option value="SS">SS</option>
+        </select>
+        <input id="projects-year" type="number" min="2019" max="2100" placeholder="Year" />
+        <button class="primary-btn" data-action="new-project" data-create-type="project">Add Project</button>
+      </div>
+      <div class="table-wrap" id="projects-table"></div>
+    </section>
+
+    <section class="section" id="applications" data-view="applications">
+      <div class="section-header">
+        <h2>Project Applications</h2>
+        <span>Partner-facing project submissions</span>
+      </div>
+      <div class="section-tools">
+        <input id="applications-search" type="search" placeholder="Search applications..." />
+        <select id="applications-status">
+          <option value="pending">Pending</option>
+          <option value="rejected">Rejected</option>
+          <option value="archived">Archived</option>
+        </select>
+        <select id="applications-semester">
+          <option value="">All semesters</option>
+          <option value="S1">S1</option>
+          <option value="S2">S2</option>
+          <option value="SS">SS</option>
+        </select>
+        <input id="applications-year" type="number" min="2019" max="2100" placeholder="Year" />
+        <button class="primary-btn" data-action="new-application" data-create-type="application">Add Application</button>
+      </div>
+      <div class="table-wrap" id="applications-table"></div>
+    </section>
+
+    <section class="section" id="events" data-view="events">
+      <div class="section-header">
+        <h2>Events</h2>
+        <span>Showcases, expos, meetings, and partner engagement activity</span>
+      </div>
+      <div class="section-tools">
+        <input id="events-search" type="search" placeholder="Search events..." />
+        <select id="events-type">
+          <option value="">All event types</option>
+          <option value="showcase">Showcase</option>
+          <option value="expo">Expo</option>
+          <option value="meeting">Meeting</option>
+          <option value="scholar_program">Scholar program</option>
+        </select>
+        <input id="events-year" type="number" min="2019" max="2100" placeholder="Year" />
+        <button class="primary-btn" data-action="new-event" data-create-type="event">Add Event</button>
+      </div>
+      <div class="table-wrap" id="events-table"></div>
+    </section>
+
+    <section class="section" id="users" data-view="users" data-admin-only>
+      <div class="section-header">
+        <h2>User Management</h2>
+        <span>Admin-only account and role management</span>
+      </div>
+      <div class="section-tools">
+        <input id="users-search" type="search" placeholder="Search users..." />
+        <select id="users-role">
+          <option value="">All roles</option>
+          <option value="admin">Admin</option>
+          <option value="course_organiser">Course organiser</option>
+          <option value="industry_partner">Industry partner</option>
+        </select>
+        <select id="users-active">
+          <option value="">All account states</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+        <button class="primary-btn" data-action="new-user" data-create-type="user">Add User</button>
+      </div>
+      <div class="table-wrap" id="users-table"></div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="record-modal">
+    <div class="modal">
+      <h2 id="modal-title"></h2>
+      <form id="record-form">
+        <div class="form-grid" id="modal-fields"></div>
+        <div class="modal-actions">
+          <button type="button" class="secondary-btn" id="modal-cancel">Cancel</button>
+          <button type="submit" class="primary-btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let API_BASE = "http://localhost:8080";
+
+    if(window.location.hostname !== "localhost") {
+      API_BASE = "https://qpf-staging.up.railway.app";
+      console.log("Using staging API");
+    }
+    const token = localStorage.getItem("authToken");
+    const role = (localStorage.getItem("userRole") || "").toLowerCase();
+    const fullName = localStorage.getItem("userName") || "User";
+
+    const state = {
+      partners: [],
+      projects: [],
+      applications: [],
+      events: [],
+      users: [],
+      modalType: "",
+      modalId: null,
+    };
+
+    if (!token) window.location.href = "login.html";
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    });
+
+    const VIEW_COPY = {
+      partners: {
+        title: "Industry Partners",
+        context: "Partners can have multiple approved projects and pending project applications.",
+      },
+      projects: {
+        title: "Projects",
+        context: "Approved project records linked to industry partners.",
+      },
+      applications: {
+        title: "Project Applications",
+        context: "Pending partner-submitted applications waiting for review or approval.",
+      },
+      events: {
+        title: "Events",
+        context: "Showcases, expos, meetings, and other industry engagement records.",
+      },
+      users: {
+        title: "User Management",
+        context: "Admin-only account, role, and access management.",
+      },
+    };
+
+    const FIELD_SETS = {
+      partner: [
+        ["name", "Name", "text", true],
+        ["industryId", "Industry ID", "number", false],
+        ["email", "Email", "email", false],
+        ["website", "Website", "text", false],
+        ["phone", "Phone", "text", false],
+        ["partnershipStatus", "Partnership status", "select", true, ["prospect", "active", "completed", "inactive"]],
+        ["notes", "Notes", "textarea", false],
+      ],
+      project: [
+        ["title", "Title", "text", true],
+        ["description", "Description", "textarea", false],
+        ["organisationId", "Organisation", "select-org", true],
+        ["facultyId", "Faculty ID", "number", false],
+        ["projectType", "Project type", "select", true, ["capstone", "undergrad", "postgrad"]],
+        ["semester", "Semester", "select", true, ["S1", "S2", "SS"]],
+        ["year", "Year", "number", true],
+        ["status", "Status", "select", true, ["proposed", "ongoing", "completed", "cancelled"]],
+      ],
+      application: [
+        ["proposedTitle", "Proposed title", "text", true],
+        ["proposedDescription", "Description", "textarea", false],
+        ["organisationId", "Organisation", "select-org", true],
+        ["contactId", "Contact ID", "text", false],
+        ["proposedProjectType", "Project type", "select", false, ["capstone", "undergrad", "postgrad"]],
+        ["proposedSemester", "Semester", "select", false, ["S1", "S2", "SS"]],
+        ["proposedYear", "Year", "number", false],
+        ["proposedFacultyId", "Faculty ID", "number", false],
+      ],
+      event: [
+        ["name", "Name", "text", true],
+        ["description", "Description", "textarea", false],
+        ["eventType", "Event type", "select", false, ["showcase", "expo", "meeting", "scholar_program"]],
+        ["eventDate", "Date", "date", true],
+        ["location", "Location", "text", false],
+        ["facultyId", "Faculty ID", "number", false],
+        ["notes", "Notes", "textarea", false],
+      ],
+      user: [
+        ["email", "Email", "email", true],
+        ["password", "Password", "password", false],
+        ["fullName", "Full name", "text", true],
+        ["role", "Role", "select", true, ["admin", "course_organiser", "industry_partner"]],
+        ["facultyId", "Faculty ID", "number", false],
+        ["organisationId", "Organisation", "select-org-empty", false],
+        ["isActive", "Active", "select", true, ["true", "false"]],
+      ],
+    };
+
+    function selectedView() {
+      const view = window.location.hash.replace("#", "");
+      if (view === "users" && role !== "admin") return "all";
+      return VIEW_COPY[view] ? view : "all";
+    }
+
+    function applyViewMode() {
+      const view = selectedView();
+      document.querySelectorAll("[data-admin-nav], [data-admin-only]").forEach(element => {
+        element.hidden = role !== "admin";
+      });
+      const copy = VIEW_COPY[view];
+      document.getElementById("page-heading").textContent = copy ? copy.title : "Partner and Projects View";
+      document.getElementById("view-context").textContent = copy
+        ? copy.context
+        : `${fullName} (${prettyRole(role) || "signed in"}) can see records scoped by the API.`;
+
+      document.querySelectorAll("[data-view]").forEach(section => {
+        section.classList.toggle("hidden", view !== "all" && section.dataset.view !== view);
+      });
+      document.querySelectorAll("[data-summary]").forEach(summary => {
+        summary.classList.toggle("hidden", view !== "all" && summary.dataset.summary !== view);
+      });
+      document.querySelectorAll("[data-nav-view]").forEach(link => {
+        link.classList.toggle("active", link.dataset.navView === view);
+      });
+    }
+
+    function prettyRole(value) {
+      return value.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function status(value) {
+      if (!value) return "";
+      const cls = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      return `<span class="status status-${cls}">${escapeHtml(value)}</span>`;
+    }
+
+    function canCreate(type) {
+      if (type === "partner" || type === "project") return role === "admin" || role === "course_organiser";
+      if (type === "application") return ["admin", "course_organiser", "industry_partner"].includes(role);
+      if (type === "event") return role === "admin" || role === "course_organiser";
+      if (type === "user") return role === "admin";
+      return false;
+    }
+
+    function canEdit(type) {
+      return canCreate(type);
+    }
+
+    function canDelete(type) {
+      if (type === "partner" || type === "project") return role === "admin";
+      if (type === "application") return role === "admin" || role === "course_organiser";
+      if (type === "event" || type === "user") return role === "admin";
+      return false;
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      return new Intl.DateTimeFormat("en-AU", { year: "numeric", month: "short", day: "numeric" }).format(new Date(value));
+    }
+
+    async function request(path, options = {}) {
+      const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...(options.headers || {}),
+        },
+      });
+      if (response.status === 401) {
+        localStorage.clear();
+        window.location.href = "login.html";
+        return null;
+      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (response.status === 204) return null;
+      return response.json();
+    }
+
+    function renderTable(targetId, columns, rows) {
+      const target = document.getElementById(targetId);
+      if (!rows.length) {
+        target.innerHTML = `<div class="empty">No records to display.</div>`;
+        return;
+      }
+      const headings = columns.map(col => `<th>${escapeHtml(col.label)}</th>`).join("");
+      const body = rows.map(row => `<tr>${columns.map(col => `<td>${col.render(row)}</td>`).join("")}</tr>`).join("");
+      target.innerHTML = `<table><thead><tr>${headings}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    function filterRows(rows, filters) {
+      return rows.filter(row => Object.entries(filters).every(([key, expected]) => {
+        if (!expected) return true;
+        return String(row[key] ?? "").toLowerCase().includes(String(expected).toLowerCase());
+      }));
+    }
+
+    function renderPartners() {
+      const rows = filterRows(state.partners, {
+        name: document.getElementById("partners-search").value,
+        partnershipStatus: document.getElementById("partners-status").value,
+        submissionStatus: document.getElementById("partners-submission").value,
+      });
+      document.getElementById("partners-count").textContent = rows.length;
+      renderTable("partners-table", [
+        { label: "Name", render: row => escapeHtml(row.name) },
+        { label: "Industry", render: row => escapeHtml(row.industry || "Unspecified") },
+        { label: "Partnership", render: row => status(row.partnershipStatus) },
+        { label: "Submission", render: row => status(row.submissionStatus) },
+        { label: "Email", render: row => escapeHtml(row.email || row.primaryContactEmail || "") },
+        { label: "Projects", render: row => escapeHtml(row.projectCount) },
+        { label: "Pending apps", render: row => escapeHtml(row.pendingApplicationCount) },
+        { label: "Actions", render: row => actionButtons("partner", row.id) },
+      ], rows);
+    }
+
+    function renderProjects() {
+      const rows = filterRows(state.projects, {
+        title: document.getElementById("projects-search").value,
+        status: document.getElementById("projects-status").value,
+        semester: document.getElementById("projects-semester").value,
+        year: document.getElementById("projects-year").value,
+      });
+      document.getElementById("projects-count").textContent = rows.length;
+      renderTable("projects-table", [
+        { label: "Title", render: row => escapeHtml(row.title) },
+        { label: "Partner", render: row => escapeHtml(row.organisationName) },
+        { label: "Type", render: row => escapeHtml(row.projectType) },
+        { label: "Intake", render: row => escapeHtml(`${row.semester} ${row.year}`) },
+        { label: "Status", render: row => status(row.status) },
+        { label: "Updated", render: row => escapeHtml(formatDate(row.updatedAt)) },
+        { label: "Actions", render: row => actionButtons("project", row.id) },
+      ], rows);
+    }
+
+    function renderApplications() {
+      const rows = filterRows(state.applications, {
+        proposedTitle: document.getElementById("applications-search").value,
+        applicationStatus: document.getElementById("applications-status").value,
+        proposedSemester: document.getElementById("applications-semester").value,
+        proposedYear: document.getElementById("applications-year").value,
+      });
+      document.getElementById("applications-count").textContent = rows.length;
+      renderTable("applications-table", [
+        { label: "Proposed title", render: row => escapeHtml(row.proposedTitle) },
+        { label: "Partner", render: row => escapeHtml(row.organisationName) },
+        { label: "Type", render: row => escapeHtml(row.proposedProjectType || "") },
+        { label: "Intake", render: row => escapeHtml([row.proposedSemester, row.proposedYear].filter(Boolean).join(" ")) },
+        { label: "Status", render: row => status(row.applicationStatus) },
+        { label: "Submitted", render: row => escapeHtml(formatDate(row.submittedAt)) },
+        { label: "Actions", render: row => actionButtons("application", row.id) },
+      ], rows);
+    }
+
+    function renderEvents() {
+      const rows = filterRows(state.events, {
+        name: document.getElementById("events-search").value,
+        eventType: document.getElementById("events-type").value,
+        eventDate: document.getElementById("events-year").value,
+      });
+      document.getElementById("events-count").textContent = rows.length;
+      renderTable("events-table", [
+        { label: "Name", render: row => escapeHtml(row.name) },
+        { label: "Type", render: row => escapeHtml(row.eventType || "") },
+        { label: "Date", render: row => escapeHtml(formatDate(row.eventDate)) },
+        { label: "Location", render: row => escapeHtml(row.location || "") },
+        { label: "Faculty", render: row => escapeHtml(row.faculty || "All faculties") },
+        { label: "Attendees", render: row => escapeHtml(row.attendanceCount) },
+        { label: "Actions", render: row => actionButtons("event", row.id) },
+      ], rows);
+    }
+
+    function renderUsers() {
+      if (role !== "admin") return;
+      const rows = filterRows(state.users, {
+        fullName: document.getElementById("users-search").value,
+        role: document.getElementById("users-role").value,
+        isActive: document.getElementById("users-active").value,
+      });
+      document.getElementById("users-count").textContent = rows.length;
+      renderTable("users-table", [
+        { label: "Name", render: row => escapeHtml(row.fullName) },
+        { label: "Email", render: row => escapeHtml(row.email) },
+        { label: "Role", render: row => status(row.role) },
+        { label: "Faculty", render: row => escapeHtml(row.faculty || "") },
+        { label: "Organisation", render: row => escapeHtml(row.organisationName || "") },
+        { label: "Active", render: row => status(row.isActive ? "active" : "inactive") },
+        { label: "Last login", render: row => escapeHtml(formatDate(row.lastLoginAt)) },
+        { label: "Actions", render: row => actionButtons("user", row.id) },
+      ], rows);
+    }
+
+    function actionButtons(type, id) {
+      const buttons = [];
+      if (canEdit(type)) buttons.push(`<button class="action-btn edit-btn" data-action="edit-${type}" data-id="${id}">Edit</button>`);
+      if (canDelete(type)) buttons.push(`<button class="action-btn delete-btn" data-action="delete-${type}" data-id="${id}">Delete</button>`);
+      return buttons.join("");
+    }
+
+    function renderAll() {
+      renderPartners();
+      renderProjects();
+      renderApplications();
+      renderEvents();
+      renderUsers();
+    }
+
+    async function loadData() {
+      try {
+        const requests = [
+          request("/api/organisations"),
+          request("/api/projects"),
+          request("/api/projectapplications"),
+          request("/api/events"),
+        ];
+        if (role === "admin") requests.push(request("/api/users"));
+        const [partners, projects, applications, events, users] = await Promise.all(requests);
+        state.partners = partners || [];
+        state.projects = projects || [];
+        state.applications = applications || [];
+        state.events = events || [];
+        state.users = users || [];
+        renderAll();
+      } catch (error) {
+        ["partners-table", "projects-table", "applications-table", "events-table", "users-table"].forEach(id => {
+          if (!document.getElementById(id)) return;
+          document.getElementById(id).innerHTML = `<div class="error">Could not load data (${escapeHtml(error.message)}).</div>`;
+        });
+      }
+    }
+
+    function openModal(type, record = {}) {
+      state.modalType = type;
+      state.modalId = record.id || null;
+      document.getElementById("modal-title").textContent = `${record.id ? "Edit" : "Add"} ${type}`;
+      document.getElementById("modal-fields").innerHTML = FIELD_SETS[type].map(fieldTemplate(record)).join("");
+      document.getElementById("record-modal").classList.add("active");
+    }
+
+    function fieldTemplate(record) {
+      return ([name, label, inputType, required, options]) => {
+        const value = record[name] ?? defaultValue(name) ?? "";
+        const req = required || (state.modalType === "user" && !state.modalId && name === "password") ? "required" : "";
+        const full = inputType === "textarea" ? " full" : "";
+        if (inputType === "textarea") {
+          return `<div class="form-group${full}"><label>${label}</label><textarea name="${name}" ${req}>${escapeHtml(value)}</textarea></div>`;
+        }
+        if (inputType === "select") {
+          return `<div class="form-group"><label>${label}</label><select name="${name}" ${req}>${options.map(option => `<option value="${option}" ${String(value) === option ? "selected" : ""}>${option}</option>`).join("")}</select></div>`;
+        }
+        if (inputType === "select-org") {
+          return `<div class="form-group"><label>${label}</label><select name="${name}" ${req}>${state.partners.map(partner => `<option value="${partner.id}" ${value === partner.id ? "selected" : ""}>${escapeHtml(partner.name)}</option>`).join("")}</select></div>`;
+        }
+        if (inputType === "select-org-empty") {
+          const optionsHtml = [`<option value="">No organisation</option>`]
+            .concat(state.partners.map(partner => `<option value="${partner.id}" ${value === partner.id ? "selected" : ""}>${escapeHtml(partner.name)}</option>`))
+            .join("");
+          return `<div class="form-group"><label>${label}</label><select name="${name}" ${req}>${optionsHtml}</select></div>`;
+        }
+        return `<div class="form-group${full}"><label>${label}</label><input name="${name}" type="${inputType}" value="${escapeHtml(value)}" ${req} /></div>`;
+      };
+    }
+
+    function defaultValue(name) {
+      const defaults = {
+        partnershipStatus: "prospect",
+        projectType: "capstone",
+        semester: "S1",
+        year: new Date().getFullYear(),
+        status: "proposed",
+        proposedProjectType: "capstone",
+        proposedSemester: "S1",
+        proposedYear: new Date().getFullYear(),
+        eventType: "meeting",
+        eventDate: new Date().toISOString().slice(0, 10),
+        role: "industry_partner",
+        isActive: "true",
+      };
+      return defaults[name];
+    }
+
+    function closeModal() {
+      document.getElementById("record-modal").classList.remove("active");
+      document.getElementById("record-form").reset();
+      state.modalType = "";
+      state.modalId = null;
+    }
+
+    function modalPayload() {
+      const form = new FormData(document.getElementById("record-form"));
+      const data = Object.fromEntries(form.entries());
+      ["industryId", "facultyId", "year", "proposedYear", "proposedFacultyId"].forEach(key => {
+        data[key] = data[key] ? Number(data[key]) : null;
+      });
+      ["contactId", "organisationId"].forEach(key => {
+        data[key] = data[key] || null;
+      });
+      if (data.isActive !== undefined) data.isActive = data.isActive === "true";
+      if (data.password === "") data.password = null;
+      return data;
+    }
+
+    async function saveModal(event) {
+      event.preventDefault();
+      const type = state.modalType;
+      const id = state.modalId;
+      const paths = { partner: "/api/organisations", project: "/api/projects", application: "/api/projectapplications", event: "/api/events", user: "/api/users" };
+      await request(`${paths[type]}${id ? `/${id}` : ""}`, {
+        method: id ? "PUT" : "POST",
+        body: JSON.stringify(modalPayload()),
+      });
+      closeModal();
+      await loadData();
+    }
+
+    async function deleteRecord(type, id) {
+      if (!confirm("Move this record to deleted records?")) return;
+      const paths = { partner: "/api/organisations", project: "/api/projects", application: "/api/projectapplications", event: "/api/events", user: "/api/users" };
+      await request(`${paths[type]}/${id}`, { method: "DELETE" });
+      await loadData();
+    }
+
+    document.getElementById("record-form").addEventListener("submit", saveModal);
+    document.getElementById("modal-cancel").addEventListener("click", closeModal);
+    document.querySelectorAll("[data-create-type]").forEach(button => {
+      button.hidden = !canCreate(button.dataset.createType);
+    });
+
+    document.addEventListener("click", event => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
+      if (!action) return;
+      if (action === "new-partner") return openModal("partner");
+      if (action === "new-project") return openModal("project");
+      if (action === "new-application") return openModal("application");
+      if (action === "new-event") return openModal("event");
+      if (action === "new-user") return openModal("user");
+      const [verb, type] = action.split("-");
+      const collections = { partner: state.partners, project: state.projects, application: state.applications, event: state.events, user: state.users };
+      const record = collections[type]?.find(item => item.id === button.dataset.id);
+      if (verb === "edit" && record) openModal(type, record);
+      if (verb === "delete" && record) void deleteRecord(type, record.id);
+    });
+
+    ["partners-search", "partners-status", "partners-submission"].forEach(id => document.getElementById(id).addEventListener("input", renderPartners));
+    ["projects-search", "projects-status", "projects-semester", "projects-year"].forEach(id => document.getElementById(id).addEventListener("input", renderProjects));
+    ["applications-search", "applications-status", "applications-semester", "applications-year"].forEach(id => document.getElementById(id).addEventListener("input", renderApplications));
+    ["events-search", "events-type", "events-year"].forEach(id => document.getElementById(id).addEventListener("input", renderEvents));
+    ["users-search", "users-role", "users-active"].forEach(id => {
+      const element = document.getElementById(id);
+      if (element) element.addEventListener("input", renderUsers);
+    });
+
+    applyViewMode();
+    window.addEventListener("hashchange", applyViewMode);
+    void loadData();
+  </script>
+</body>
+</html>
