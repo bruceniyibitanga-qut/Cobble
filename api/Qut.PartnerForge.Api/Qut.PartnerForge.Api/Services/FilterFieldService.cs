@@ -22,7 +22,9 @@ public class FilterFieldService : IFilterFieldService
         {
             ["organisations"] =
             [
+                new("registration_id", "Registration ID", "text", null),
                 new("name", "Name", "text", null),
+                new("abn", "ABN", "text", null),
                 new("partnership_status", "Partnership Status", "select",
                     ["prospect", "active", "completed", "inactive"]),
                 new("submission_status", "Submission Status", "select",
@@ -36,6 +38,7 @@ public class FilterFieldService : IFilterFieldService
                 new("title", "Title", "text", null),
                 new("project_type", "Project Type", "select",
                     ["capstone", "undergrad", "postgrad"]),
+                new("discipline_area", "Discipline Area", "text", null),
                 new("semester", "Semester", "select",
                     ["S1", "S2", "SS"]),
                 new("year", "Year", "number", null),
@@ -64,6 +67,7 @@ public class FilterFieldService : IFilterFieldService
                     ["pending", "approved", "rejected", "archived"]),
                 new("proposed_project_type", "Proposed Type", "select",
                     ["capstone", "undergrad", "postgrad"]),
+                new("proposed_discipline_area", "Proposed Discipline Area", "text", null),
                 new("proposed_semester", "Proposed Semester", "select",
                     ["S1", "S2", "SS"]),
                 new("proposed_year", "Proposed Year", "number", null),

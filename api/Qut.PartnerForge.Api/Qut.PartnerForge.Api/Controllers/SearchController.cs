@@ -35,7 +35,9 @@ public class SearchController : ControllerBase
     {
         ["organisations"] = new(StringComparer.OrdinalIgnoreCase)
         {
+            ["registration_id"] = nameof(Organisation.RegistrationId),
             ["name"] = nameof(Organisation.Name),
+            ["abn"] = nameof(Organisation.Abn),
             ["partnership_status"] = nameof(Organisation.PartnershipStatus),
             ["submission_status"] = nameof(Organisation.SubmissionStatus),
             ["city"] = nameof(Organisation.City),
@@ -46,6 +48,7 @@ public class SearchController : ControllerBase
         {
             ["title"] = nameof(Project.Title),
             ["project_type"] = nameof(Project.ProjectType),
+            ["discipline_area"] = nameof(Project.DisciplineArea),
             ["semester"] = nameof(Project.Semester),
             ["year"] = nameof(Project.Year),
             ["status"] = nameof(Project.Status),
@@ -70,6 +73,7 @@ public class SearchController : ControllerBase
             ["proposed_title"] = nameof(ProjectApplication.ProposedTitle),
             ["application_status"] = nameof(ProjectApplication.ApplicationStatus),
             ["proposed_project_type"] = nameof(ProjectApplication.ProposedProjectType),
+            ["proposed_discipline_area"] = nameof(ProjectApplication.ProposedDisciplineArea),
             ["proposed_semester"] = nameof(ProjectApplication.ProposedSemester),
             ["proposed_year"] = nameof(ProjectApplication.ProposedYear),
         },
@@ -173,7 +177,9 @@ public class SearchController : ControllerBase
                 request,
                 o => new OrganisationListItemDto(
                     o.Id,
+                    o.RegistrationId,
                     o.Name,
+                    o.Abn,
                     o.Industry != null ? o.Industry.Name : null,
                     o.IndustryId,
                     o.Email,
@@ -185,6 +191,7 @@ public class SearchController : ControllerBase
                     o.State,
                     o.Postcode,
                     o.Country,
+                    o.OrganisationInformation,
                     o.PartnershipStatus,
                     o.SubmissionStatus,
                     o.Contacts
@@ -193,7 +200,15 @@ public class SearchController : ControllerBase
                         .FirstOrDefault(),
                     o.Contacts
                         .Where(c => c.DeletedAt == null && c.IsPrimary)
+                        .Select(c => c.JobTitle)
+                        .FirstOrDefault(),
+                    o.Contacts
+                        .Where(c => c.DeletedAt == null && c.IsPrimary)
                         .Select(c => c.Email)
+                        .FirstOrDefault(),
+                    o.Contacts
+                        .Where(c => c.DeletedAt == null && c.IsPrimary)
+                        .Select(c => c.Phone)
                         .FirstOrDefault(),
                     o.Projects.Count(p => p.DeletedAt == null),
                     o.ProjectApplications.Count(a =>
@@ -220,6 +235,13 @@ public class SearchController : ControllerBase
                     p.Status,
                     p.StartDate,
                     p.EndDate,
+                    p.MultipleTeams,
+                    p.DisciplineArea,
+                    p.SecondaryItDiscipline,
+                    p.ProjectDeliverables,
+                    p.ProjectPartnerAgreement,
+                    p.StudentProjectAgreement,
+                    p.IpAssignmentRationale,
                     p.UpdatedAt
                 )),
             "events" => await ExecuteSearch(

@@ -8,6 +8,14 @@ public class EventAttendance
     public Guid Id { get; set; }
     public Guid EventId { get; set; }
     public Guid OrganisationId { get; set; }
+    public string? FirstName { get; set; }
+    public string? BestContactName { get; set; }
+    public string? PositionTitle { get; set; }
+    public string? Email { get; set; }
+    public string? ListName { get; set; }
+    public string? Source { get; set; }
+    public string? EventsInvitedTo { get; set; }
+    public string? Response { get; set; }
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

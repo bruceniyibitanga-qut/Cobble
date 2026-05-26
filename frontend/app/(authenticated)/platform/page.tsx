@@ -51,7 +51,9 @@ const VIEW_COPY: Record<string, { title: string; context: string }> = {
 
 const FIELD_SETS: Record<string, FieldDef[]> = {
   partner: [
-    ["name", "Name", "text", true],
+    ["name", "Organisation name", "text", true],
+    ["registrationId", "Registration ID", "text", false],
+    ["abn", "ABN", "text", false],
     ["industryId", "Industry", "select-industry", false],
     ["email", "Email", "email", false],
     ["website", "Website", "text", false],
@@ -62,6 +64,10 @@ const FIELD_SETS: Record<string, FieldDef[]> = {
     ["state", "State", "text", false],
     ["postcode", "Postcode", "text", false],
     ["country", "Country", "text", false],
+    ["primaryContactName", "Industry partner contact / supervisor", "text", false],
+    ["primaryContactPosition", "Position title", "text", false],
+    ["primaryContactEmail", "Contact email", "email", false],
+    ["primaryContactPhone", "Contact phone", "text", false],
     [
       "partnershipStatus",
       "Partnership status",
@@ -69,10 +75,11 @@ const FIELD_SETS: Record<string, FieldDef[]> = {
       true,
       ["prospect", "active", "completed", "inactive"],
     ],
+    ["organisationInformation", "Organisation information", "textarea", false],
     ["notes", "Notes", "textarea", false],
   ],
   project: [
-    ["title", "Title", "text", true],
+    ["title", "Project title", "text", true],
     ["description", "Description", "textarea", false],
     ["organisationId", "Organisation", "select-org", true],
     ["facultyId", "Faculty ID", "number", false],
@@ -92,9 +99,21 @@ const FIELD_SETS: Record<string, FieldDef[]> = {
       true,
       ["proposed", "ongoing", "completed", "cancelled"],
     ],
+    ["multipleTeams", "Multiple teams", "select", true, ["false", "true"]],
+    ["disciplineArea", "Discipline area", "text", false],
+    ["secondaryItDiscipline", "Secondary IT discipline", "text", false],
+    ["projectDeliverables", "Project deliverables", "textarea", false],
+    ["projectPartnerAgreement", "Project partner agreement", "textarea", false],
+    [
+      "studentProjectAgreement",
+      "Student project agreement - IP licence/assignment",
+      "textarea",
+      false,
+    ],
+    ["ipAssignmentRationale", "Assignment of IP - rationale", "textarea", false],
   ],
   application: [
-    ["proposedTitle", "Proposed title", "text", true],
+    ["proposedTitle", "Title of the proposed project", "text", true],
     ["proposedDescription", "Description", "textarea", false],
     ["organisationId", "Organisation", "select-org", true],
     ["contactId", "Contact ID", "text", false],
@@ -108,6 +127,17 @@ const FIELD_SETS: Record<string, FieldDef[]> = {
     ["proposedSemester", "Semester", "select", false, ["S1", "S2", "SS"]],
     ["proposedYear", "Year", "number", false],
     ["proposedFacultyId", "Faculty ID", "number", false],
+    ["proposedMultipleTeams", "Multiple teams", "select", true, ["false", "true"]],
+    ["proposedDisciplineArea", "Discipline area", "text", false],
+    ["proposedSecondaryItDiscipline", "Secondary IT discipline", "text", false],
+    ["proposedDeliverables", "Project deliverables", "textarea", false],
+    [
+      "studentProjectAgreement",
+      "Student project agreement - IP licence/assignment",
+      "textarea",
+      false,
+    ],
+    ["ipAssignmentRationale", "Assignment of IP - rationale", "textarea", false],
   ],
   event: [
     ["name", "Name", "text", true],
@@ -323,10 +353,12 @@ function PlatformContent() {
 
   const partnerColumns: Column<any>[] = [
     { label: "Name", render: (r) => r.name },
+    { label: "Registration", render: (r) => r.registrationId || "" },
+    { label: "ABN", render: (r) => r.abn || "" },
     { label: "Industry", render: (r) => r.industry || "Unspecified" },
+    { label: "Primary contact", render: (r) => r.primaryContactName || "" },
     { label: "Partnership", render: (r) => <StatusBadge value={r.partnershipStatus} /> },
-    { label: "Submission", render: (r) => <StatusBadge value={r.submissionStatus} /> },
-    { label: "Email", render: (r) => r.email || r.primaryContactEmail || "" },
+    { label: "Email", render: (r) => r.primaryContactEmail || r.email || "" },
     { label: "Projects", render: (r) => r.projectCount },
     { label: "Pending apps", render: (r) => r.pendingApplicationCount },
     { label: "Actions", render: (r) => <ActionButtons type="partner" id={r.id} /> },
@@ -336,6 +368,8 @@ function PlatformContent() {
     { label: "Title", render: (r) => r.title },
     { label: "Partner", render: (r) => r.organisationName },
     { label: "Type", render: (r) => r.projectType },
+    { label: "Discipline", render: (r) => r.disciplineArea || "" },
+    { label: "Teams", render: (r) => (r.multipleTeams ? "Multiple" : "Single") },
     { label: "Intake", render: (r) => `${r.semester} ${r.year}` },
     { label: "Status", render: (r) => <StatusBadge value={r.status} /> },
     { label: "Updated", render: (r) => formatDate(r.updatedAt) },
@@ -346,6 +380,8 @@ function PlatformContent() {
     { label: "Proposed title", render: (r) => r.proposedTitle },
     { label: "Partner", render: (r) => r.organisationName },
     { label: "Type", render: (r) => r.proposedProjectType || "" },
+    { label: "Discipline", render: (r) => r.proposedDisciplineArea || "" },
+    { label: "Teams", render: (r) => (r.proposedMultipleTeams ? "Multiple" : "Single") },
     {
       label: "Intake",
       render: (r) =>

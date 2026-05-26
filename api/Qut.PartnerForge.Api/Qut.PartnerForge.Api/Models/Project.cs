@@ -16,6 +16,13 @@ public class Project
     public string Status { get; set; } = "ongoing";
     public DateOnly? StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
+    public bool MultipleTeams { get; set; } = false;
+    public string? DisciplineArea { get; set; }
+    public string? SecondaryItDiscipline { get; set; }
+    public string? ProjectDeliverables { get; set; }
+    public string? ProjectPartnerAgreement { get; set; }
+    public string? StudentProjectAgreement { get; set; }
+    public string? IpAssignmentRationale { get; set; }
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

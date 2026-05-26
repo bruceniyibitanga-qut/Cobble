@@ -6,8 +6,10 @@ namespace Qut.PartnerForge.Api.Models;
 public class Organisation
 {
     public Guid Id { get; set; }
+    public string? RegistrationId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? LegalName { get; set; }
+    public string? Abn { get; set; }
     public int? IndustryId { get; set; }
     public string? Website { get; set; }
     public string? Domain { get; set; }
@@ -19,6 +21,7 @@ public class Organisation
     public string? State { get; set; }
     public string? Postcode { get; set; }
     public string Country { get; set; } = "Australia";
+    public string? OrganisationInformation { get; set; }
     public string? Notes { get; set; }
     public string PartnershipStatus { get; set; } = "prospect";
     public string SubmissionStatus { get; set; } = "approved";

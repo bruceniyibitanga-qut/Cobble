@@ -39,9 +39,11 @@ function defaultValue(name: string): unknown {
     semester: "S1",
     year: new Date().getFullYear(),
     status: "proposed",
+    multipleTeams: "false",
     proposedProjectType: "capstone",
     proposedSemester: "S1",
     proposedYear: new Date().getFullYear(),
+    proposedMultipleTeams: "false",
     eventType: "meeting",
     eventDate: new Date().toISOString().slice(0, 10),
     role: "industry_partner",
@@ -77,6 +79,12 @@ export default function RecordModal({
       data[key] = data[key] || null;
     });
     if (data.isActive !== undefined) data.isActive = data.isActive === "true";
+    if (data.multipleTeams !== undefined) {
+      data.multipleTeams = data.multipleTeams === "true";
+    }
+    if (data.proposedMultipleTeams !== undefined) {
+      data.proposedMultipleTeams = data.proposedMultipleTeams === "true";
+    }
     if (data.password === "") data.password = null;
 
     onSubmit(data);
@@ -93,12 +101,14 @@ export default function RecordModal({
               const isRequired =
                 required || (isNew && name === "password");
               const full = inputType === "textarea" ? " full" : "";
+              const inputId = `field-${name}`;
 
               if (inputType === "textarea") {
                 return (
                   <div key={name} className={`form-group${full}`}>
-                    <label>{label}</label>
+                    <label htmlFor={inputId}>{label}</label>
                     <textarea
+                      id={inputId}
                       name={name}
                       defaultValue={String(value)}
                       required={isRequired}
@@ -110,8 +120,9 @@ export default function RecordModal({
               if (inputType === "select" && options) {
                 return (
                   <div key={name} className="form-group">
-                    <label>{label}</label>
+                    <label htmlFor={inputId}>{label}</label>
                     <select
+                      id={inputId}
                       name={name}
                       defaultValue={String(value)}
                       required={isRequired}
@@ -129,8 +140,9 @@ export default function RecordModal({
               if (inputType === "select-org") {
                 return (
                   <div key={name} className="form-group">
-                    <label>{label}</label>
+                    <label htmlFor={inputId}>{label}</label>
                     <select
+                      id={inputId}
                       name={name}
                       defaultValue={String(value)}
                       required={isRequired}
@@ -148,8 +160,9 @@ export default function RecordModal({
               if (inputType === "select-org-empty") {
                 return (
                   <div key={name} className="form-group">
-                    <label>{label}</label>
+                    <label htmlFor={inputId}>{label}</label>
                     <select
+                      id={inputId}
                       name={name}
                       defaultValue={String(value)}
                       required={isRequired}
@@ -168,8 +181,9 @@ export default function RecordModal({
               if (inputType === "select-industry") {
                 return (
                   <div key={name} className="form-group">
-                    <label>{label}</label>
+                    <label htmlFor={inputId}>{label}</label>
                     <select
+                      id={inputId}
                       name={name}
                       defaultValue={String(value)}
                       required={isRequired}
@@ -187,8 +201,9 @@ export default function RecordModal({
 
               return (
                 <div key={name} className={`form-group${full}`}>
-                  <label>{label}</label>
+                  <label htmlFor={inputId}>{label}</label>
                   <input
+                    id={inputId}
                     name={name}
                     type={inputType}
                     defaultValue={String(value)}

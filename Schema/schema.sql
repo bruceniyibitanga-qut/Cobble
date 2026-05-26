@@ -125,8 +125,10 @@ CREATE INDEX idx_users_organisation  ON users (organisation_id);
 
 CREATE TABLE organisations (
     id                    CHAR(36) PRIMARY KEY,
+    registration_id       VARCHAR(100),
     name                  VARCHAR(255) NOT NULL,
     legal_name            VARCHAR(255),
+    abn                   VARCHAR(20),
     industry_id           INT,
     website               VARCHAR(255),
     domain                VARCHAR(255),
@@ -138,6 +140,7 @@ CREATE TABLE organisations (
     state                 VARCHAR(100),
     postcode              VARCHAR(20),
     country               VARCHAR(100) DEFAULT 'Australia',
+    organisation_information TEXT,
     notes                 TEXT,
 
     partnership_status    VARCHAR(20) NOT NULL DEFAULT 'prospect',
@@ -166,6 +169,8 @@ CREATE TABLE organisations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE INDEX idx_org_name               ON organisations (name);
+CREATE INDEX idx_org_registration_id    ON organisations (registration_id);
+CREATE INDEX idx_org_abn                ON organisations (abn);
 CREATE INDEX idx_org_industry           ON organisations (industry_id);
 CREATE INDEX idx_org_partnership_status ON organisations (partnership_status);
 CREATE INDEX idx_org_submission_status  ON organisations (submission_status);
@@ -223,6 +228,13 @@ CREATE TABLE projects (
 
     start_date        DATE,
     end_date          DATE,
+    multiple_teams    BOOLEAN NOT NULL DEFAULT FALSE,
+    discipline_area   VARCHAR(255),
+    secondary_it_discipline VARCHAR(255),
+    project_deliverables TEXT,
+    project_partner_agreement TEXT,
+    student_project_agreement TEXT,
+    ip_assignment_rationale TEXT,
     notes             TEXT,
 
     created_at        DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
@@ -265,6 +277,12 @@ CREATE TABLE project_applications (
     proposed_semester           VARCHAR(10),
     proposed_year               INT,
     proposed_faculty_id         INT,
+    proposed_multiple_teams     BOOLEAN NOT NULL DEFAULT FALSE,
+    proposed_discipline_area    VARCHAR(255),
+    proposed_secondary_it_discipline VARCHAR(255),
+    proposed_deliverables       TEXT,
+    student_project_agreement   TEXT,
+    ip_assignment_rationale     TEXT,
 
     application_status          VARCHAR(20) NOT NULL DEFAULT 'pending',
 
@@ -333,6 +351,14 @@ CREATE TABLE event_attendances (
     id                CHAR(36) PRIMARY KEY,
     event_id          CHAR(36) NOT NULL,
     organisation_id   CHAR(36) NOT NULL,
+    first_name        VARCHAR(100),
+    best_contact_name VARCHAR(255),
+    position_title    VARCHAR(255),
+    email             VARCHAR(255),
+    list_name         VARCHAR(255),
+    source            VARCHAR(255),
+    events_invited_to TEXT,
+    response          VARCHAR(255),
     notes             TEXT,
     created_at        DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at        DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),

@@ -81,6 +81,13 @@ public class ProjectsController : ControllerBase
                 p.Status,
                 p.StartDate,
                 p.EndDate,
+                p.MultipleTeams,
+                p.DisciplineArea,
+                p.SecondaryItDiscipline,
+                p.ProjectDeliverables,
+                p.ProjectPartnerAgreement,
+                p.StudentProjectAgreement,
+                p.IpAssignmentRationale,
                 p.UpdatedAt
             ))
             .ToListAsync();
@@ -111,6 +118,13 @@ public class ProjectsController : ControllerBase
                 p.Status,
                 p.StartDate,
                 p.EndDate,
+                p.MultipleTeams,
+                p.DisciplineArea,
+                p.SecondaryItDiscipline,
+                p.ProjectDeliverables,
+                p.ProjectPartnerAgreement,
+                p.StudentProjectAgreement,
+                p.IpAssignmentRationale,
                 p.UpdatedAt
             ))
             .FirstOrDefaultAsync();
@@ -142,6 +156,13 @@ public class ProjectsController : ControllerBase
             Status = request.Status,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
+            MultipleTeams = request.MultipleTeams,
+            DisciplineArea = request.DisciplineArea,
+            SecondaryItDiscipline = request.SecondaryItDiscipline,
+            ProjectDeliverables = request.ProjectDeliverables,
+            ProjectPartnerAgreement = request.ProjectPartnerAgreement,
+            StudentProjectAgreement = request.StudentProjectAgreement,
+            IpAssignmentRationale = request.IpAssignmentRationale,
             Notes = request.Notes,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -180,6 +201,13 @@ public class ProjectsController : ControllerBase
         project.Status = request.Status;
         project.StartDate = request.StartDate;
         project.EndDate = request.EndDate;
+        project.MultipleTeams = request.MultipleTeams;
+        project.DisciplineArea = request.DisciplineArea;
+        project.SecondaryItDiscipline = request.SecondaryItDiscipline;
+        project.ProjectDeliverables = request.ProjectDeliverables;
+        project.ProjectPartnerAgreement = request.ProjectPartnerAgreement;
+        project.StudentProjectAgreement = request.StudentProjectAgreement;
+        project.IpAssignmentRationale = request.IpAssignmentRationale;
         project.Notes = request.Notes;
         project.UpdatedAt = DateTime.UtcNow;
 
